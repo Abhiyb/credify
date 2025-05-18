@@ -24,7 +24,7 @@ This project is a web application for managing credit cards, including applicati
 ## 🗂️ Repository Structure
 
 
-## 🚩 How to Clone and Start Working on the Project
+##  How to Clone and Start Working on the Project
 
 1. **Clone the repository:**
 2. **Create your own branch from `main`:**
