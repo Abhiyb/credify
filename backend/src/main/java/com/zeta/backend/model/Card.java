@@ -29,6 +29,13 @@ public class Card {
     @Column(nullable = false)
     private String status;  // e.g., "ACTIVE", "BLOCKED"
 
+    @Column(name = "credit_limit")
+    private Double creditLimit;
+
+    @Column(name = "available_limit")
+    private Double availableLimit;
+
+
     // Constructors
     public Card() {
     }
@@ -80,5 +87,13 @@ public class Card {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Double getAvailableLimit() {
+        return availableLimit;
+    }
+
+    public void setAvailableLimit(double v) {
+        this.availableLimit = v;
     }
 }
