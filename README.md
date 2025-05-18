@@ -23,3 +23,31 @@ This project is a web application for managing credit cards, including applicati
 
 ## 🗂️ Repository Structure
 
+
+## 🚩 How to Clone and Start Working on the Project
+
+1. **Clone the repository:**
+2. **Create your own branch from `main`:**
+3. **Make changes only in your assigned module and follow the file naming conventions mentioned in this README.**
+4. **Commit your changes and push your branch:**
+git add .
+git commit -m "Describe your changes"
+git push origin feature/<your-module-name>
+
+5. **Create a Pull Request (PR) from your branch to `main` branch on GitHub.**
+
+6. **Wait for code review and approval before merging.**
+
+---
+
+## 💻 Running the Backend
+
+- After cloning the repo, to run the backend server:
+- Open **only** the `backend` folder in your IDE (like IntelliJ IDEA or Eclipse).
+- Run the Spring Boot application from there.
+- This is necessary because the backend is a separate Spring Boot project inside the repo.
+
+---
+
+Please follow these steps carefully to avoid conflicts and ensure smooth collaboration!
+
