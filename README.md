@@ -40,7 +40,7 @@ This project is a web application for managing credit cards, including applicati
 ## 💻 Running the Backend
 
 - After cloning the repo, to run the backend server:
-- Open **only** the `backend` folder in your IDE (like IntelliJ IDEA or Eclipse).
+- Open **only** the `backend` folder in your IDE (like IntelliJ IDEA or VSCode).
 - Run the Spring Boot application from there.
 - This is necessary because the backend is a separate Spring Boot project inside the repo.
 
