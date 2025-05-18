@@ -1,0 +1,11 @@
+# Ignore node_modules and build for frontend
+frontend/node_modules/
+frontend/dist/
+
+# Ignore system files everywhere
+.DS_Store
+
+# Ignore backend target and IDE files (optional if already in backend/.gitignore)
+backend/target/
+.idea/
+.vscode/
