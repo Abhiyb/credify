@@ -31,12 +31,14 @@ This project is a web application for managing credit cards, including applicati
 3. **Make changes only in your assigned module and follow the file naming conventions mentioned in this README.**
 4. **Commit your changes and push your branch:**
 git add .
+
 git commit -m "Describe your changes"
+
 git push origin feature/<your-module-name>
 
-5. **Create a Pull Request (PR) from your branch to `main` branch on GitHub.**
+6. **Create a Pull Request (PR) from your branch to `main` branch on GitHub.**
 
-6. **Wait for code review and approval before merging.**
+7. **Wait for code review and approval before merging.**
 
 ---
 
