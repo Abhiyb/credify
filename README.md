@@ -28,7 +28,7 @@ This project is a web application for managing credit cards, including applicati
 
 1. **Clone the repository:**
 2. **Create your own branch from `main`:**
-3. **Make changes only in your assigned module and follow the file naming conventions mentioned in this README.**
+3. **Make changes only in your assigned module and follow the file naming conventions .**
 4. **Commit your changes and push your branch:** i)git add . ii)git commit -m "Describe your changes" iii)git push origin feature/<your-module-name>
 
 6. **Create a Pull Request (PR) from your branch to `main` branch on GitHub.**
