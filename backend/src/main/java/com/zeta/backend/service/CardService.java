@@ -1,7 +1,9 @@
 package com.zeta.backend.service;
 
 import com.zeta.backend.model.Card;
+import com.zeta.backend.model.User;
 import com.zeta.backend.repository.CardRepository;
+import com.zeta.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +15,15 @@ public class CardService {
 
     @Autowired
     private CardRepository cardRepository;
+    @Autowired
+    private UserRepository userRepository;
+
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
 
     public List<Card> getCardsByUserId(Long userId) {
+
         return cardRepository.findByUserId(userId);
     }
 
@@ -35,4 +44,5 @@ public class CardService {
         }
         throw new RuntimeException("Card not found with id " + cardId);
     }
+
 }
