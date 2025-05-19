@@ -3,97 +3,44 @@ package com.zeta.backend.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "cards")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cardId;
+    private Long id;
 
     @NotNull
-    @Size(min = 12, max = 16)
+    @Size(min = 12, max = 16, message = "Card number must be between 12 and 16 digits")
     @Column(unique = true, nullable = false)
     private String cardNumber;
 
     @NotNull
     @Column(nullable = false)
-    private Long userId;  // assuming userId is a foreign key reference
+    private String cardType; // VISA, Mastercard, etc.
 
     @NotNull
     @Column(nullable = false)
-    private String cardType;  // e.g., "VISA", "MasterCard"
+    private String status; // ACTIVE, BLOCKED, INACTIVE
+
 
     @NotNull
-    @Column(nullable = false)
-    private String status;  // e.g., "ACTIVE", "BLOCKED"
-
-    @Column(name = "credit_limit")
-    private Double creditLimit;
-
-    @Column(name = "available_limit")
     private Double availableLimit;
 
+    @NotNull
+    private LocalDate expiryDate;
 
-    // Constructors
-    public Card() {
-    }
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    public Card(String cardNumber, Long userId, String cardType, String status) {
-        this.cardNumber = cardNumber;
-        this.userId = userId;
-        this.cardType = cardType;
-        this.status = status;
-    }
-
-    // Getters and Setters
-
-    public Long getCardId() {
-        return cardId;
-    }
-
-    public void setCardId(Long cardId) {
-        this.cardId = cardId;
-    }
-
-    public String getCardNumber() {
-        return cardNumber;
-    }
-
-    public void setCardNumber(String cardNumber) {
-        this.cardNumber = cardNumber;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getCardType() {
-        return cardType;
-    }
-
-    public void setCardType(String cardType) {
-        this.cardType = cardType;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Double getAvailableLimit() {
-        return availableLimit;
-    }
-
-    public void setAvailableLimit(double v) {
-        this.availableLimit = v;
-    }
 }

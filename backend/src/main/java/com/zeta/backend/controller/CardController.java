@@ -42,4 +42,5 @@ public class CardController {
         Card savedCard = cardService.saveCard(card);
         return ResponseEntity.ok(savedCard);
     }
+
 }
