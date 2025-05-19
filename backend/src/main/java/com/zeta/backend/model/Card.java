@@ -17,7 +17,7 @@ public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long cardId;
 
     @NotNull
     @Size(min = 12, max = 16, message = "Card number must be between 12 and 16 digits")
