@@ -28,7 +28,7 @@ This project is a web application for managing credit cards, including applicati
 
 1. **Clone the repository:**
 2. **Create your own branch from `main`:**
-3. **Make changes only in your assigned module and follow the file naming conventions mentioned in this README.**
+3. **Make changes only in your assigned module and follow the file naming conventions .**
 4. **Commit your changes and push your branch:** i)git add . ii)git commit -m "Describe your changes" iii)git push origin feature/<your-module-name>
 
 6. **Create a Pull Request (PR) from your branch to `main` branch on GitHub.**
@@ -40,7 +40,7 @@ This project is a web application for managing credit cards, including applicati
 ## 💻 Running the Backend
 
 - After cloning the repo, to run the backend server:
-- Open **only** the `backend` folder in your IDE (like IntelliJ IDEA or Eclipse).
+- Open **only** the `backend` folder in your IDE (like IntelliJ IDEA or VSCode).
 - Run the Spring Boot application from there.
 - This is necessary because the backend is a separate Spring Boot project inside the repo.
 

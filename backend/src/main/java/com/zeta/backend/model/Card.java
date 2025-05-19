@@ -32,8 +32,6 @@ public class Card {
     @Column(nullable = false)
     private String status; // ACTIVE, BLOCKED, INACTIVE
 
-    @NotNull
-    private Double creditLimit;
 
     @NotNull
     private Double availableLimit;
@@ -44,4 +42,5 @@ public class Card {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
 }
