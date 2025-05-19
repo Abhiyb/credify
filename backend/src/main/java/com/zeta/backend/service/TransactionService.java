@@ -1,5 +1,6 @@
 package com.zeta.backend.service;
 
+import com.zeta.backend.enums.InstallmentPlan;
 import com.zeta.backend.exception.ResourceNotFoundException;
 import com.zeta.backend.model.BNPLInstallment;
 import com.zeta.backend.model.Card;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TransactionService implements ITransactionService{
+public class TransactionService implements ITransactionService {
 
     private final TransactionRepository transactionRepository;
     private final BNPLInstallmentRepository bnplInstallmentRepository;
@@ -27,43 +28,55 @@ public class TransactionService implements ITransactionService{
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
     }
 
-    @Transactional
-    public Transaction simulateTransaction(Transaction transaction, int installmentCount) {
-        if (transaction.getAmount() == null || transaction.getAmount() <= 0) {
+    private void validateTransactionAmount(Double amount) {
+        if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Transaction amount must be positive");
         }
+    }
 
-        Card card = getCard(transaction.getCard().getCardId());
-
+    private void validateCard(Card card, Double amount) {
         if (!"ACTIVE".equalsIgnoreCase(card.getStatus())) {
             throw new IllegalStateException("Card is not active");
         }
-
-        if (transaction.getAmount() > card.getAvailableLimit()) {
+        if (amount > card.getAvailableLimit()) {
             throw new IllegalStateException("Insufficient available credit limit");
         }
+    }
 
-        // Deduct amount from available limit immediately
+    @Override
+    @Transactional
+    public Transaction simulateRegularTransaction(Transaction transaction) {
+        validateTransactionAmount(transaction.getAmount());
+        Card card = getCard(transaction.getCard().getCardId());
+        validateCard(card, transaction.getAmount());
+
         card.setAvailableLimit(card.getAvailableLimit() - transaction.getAmount());
         cardRepository.save(card);
 
-        // Save the transaction
+        transaction.setIsBNPL(false);
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public Transaction simulateBNPLTransaction(Transaction transaction, InstallmentPlan plan) {
+        validateTransactionAmount(transaction.getAmount());
+
+        Card card = getCard(transaction.getCard().getCardId());
+        validateCard(card, transaction.getAmount());
+
+        card.setAvailableLimit(card.getAvailableLimit() - transaction.getAmount());
+        cardRepository.save(card);
+
+        transaction.setIsBNPL(true);
         Transaction savedTransaction = transactionRepository.save(transaction);
-
-        // If BNPL is chosen, create installments
-        if (Boolean.TRUE.equals(transaction.getIsBNPL())) {
-            if (installmentCount < 1) {
-                throw new IllegalArgumentException("Installment count must be at least 1");
-            }
-            createInstallments(savedTransaction, installmentCount);
-        }
-
+        createInstallments(savedTransaction, plan.getMonths());
         return savedTransaction;
     }
 
     private void createInstallments(Transaction transaction, int installmentCount) {
         double totalAmount = transaction.getAmount();
-        double installmentAmount = Math.round((totalAmount / installmentCount) * 100.0) / 100.0; // Round to 2 decimals
+        double installmentAmount = Math.round((totalAmount / installmentCount) * 100.0) / 100.0;
         LocalDate firstDueDate = LocalDate.now().plusMonths(1);
 
         double totalCreated = 0;
@@ -83,7 +96,35 @@ public class TransactionService implements ITransactionService{
         }
     }
 
+    @Override
     public List<Transaction> getTransactionHistoryByCardId(Long cardId) {
         return transactionRepository.findByCardId(cardId);
+    }
+
+    @Override
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.findAll();
+    }
+
+    @Override
+    public Transaction getTransactionById(Long id) {
+        return transactionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+    }
+
+    @Override
+    public Transaction updateTransaction(Long id, Transaction updatedTransaction) {
+        Transaction existing = getTransactionById(id);
+        existing.setAmount(updatedTransaction.getAmount());
+        existing.setCategory(updatedTransaction.getCategory());
+        existing.setMerchantName(updatedTransaction.getMerchantName());
+        existing.setTransactionDate(updatedTransaction.getTransactionDate());
+        return transactionRepository.save(existing);
+    }
+
+    @Override
+    public void deleteTransaction(Long id) {
+        Transaction existing = getTransactionById(id);
+        transactionRepository.delete(existing);
     }
 }

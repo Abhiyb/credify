@@ -18,7 +18,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "card_id", nullable = false)
+    @Column(name = "card_id", nullable = false, insertable = false, updatable = false)
     private Long cardId;
 
     @Column(name = "merchant_name")
@@ -39,10 +39,6 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "card_id", nullable = false)
     private Card card;
-
-
-
-
 }
 
 

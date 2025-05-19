@@ -34,4 +34,32 @@ public class BNPLPaymentController {
         List<BNPLInstallment> overdue = bnplPaymentService.getOverdueInstallmentsByCardId(cardId);
         return ResponseEntity.ok(overdue);
     }
+
+    // 🚀 Full CRUD Below
+
+    @GetMapping
+    public ResponseEntity<List<BNPLInstallment>> getAllInstallments() {
+        return ResponseEntity.ok(bnplPaymentService.getAllInstallments());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BNPLInstallment> getInstallmentById(@PathVariable Long id) {
+        return ResponseEntity.ok(bnplPaymentService.getInstallmentById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<BNPLInstallment> createInstallment(@RequestBody BNPLInstallment installment) {
+        return ResponseEntity.ok(bnplPaymentService.createInstallment(installment));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BNPLInstallment> updateInstallment(@PathVariable Long id, @RequestBody BNPLInstallment updated) {
+        return ResponseEntity.ok(bnplPaymentService.updateInstallment(id, updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteInstallment(@PathVariable Long id) {
+        bnplPaymentService.deleteInstallment(id);
+        return ResponseEntity.ok("Installment deleted successfully");
+    }
 }

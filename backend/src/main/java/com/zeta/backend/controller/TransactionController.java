@@ -1,5 +1,6 @@
 package com.zeta.backend.controller;
 
+import com.zeta.backend.enums.InstallmentPlan;
 import com.zeta.backend.model.Transaction;
 import com.zeta.backend.service.ITransactionService;
 import lombok.RequiredArgsConstructor;
@@ -15,17 +16,54 @@ public class TransactionController {
 
     private final ITransactionService transactionService;
 
+    // Create or simulate transaction (regular or BNPL)
     @PostMapping
     public ResponseEntity<Transaction> simulateTransaction(
             @RequestBody Transaction transaction,
-            @RequestParam(defaultValue = "1") int installmentCount) {
-        Transaction saved = transactionService.simulateTransaction(transaction, installmentCount);
+            @RequestParam(value = "plan", defaultValue = "THREE") InstallmentPlan plan) {
+        Transaction saved;
+        if (Boolean.TRUE.equals(transaction.getIsBNPL())) {
+            saved = transactionService.simulateBNPLTransaction(transaction, plan);
+        } else {
+            saved = transactionService.simulateRegularTransaction(transaction);
+        }
         return ResponseEntity.ok(saved);
     }
 
-    @GetMapping("/{cardId}")
+    // Read all transactions
+    @GetMapping
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        List<Transaction> list = transactionService.getAllTransactions();
+        return ResponseEntity.ok(list);
+    }
+
+    // Read one transaction by its ID
+    @GetMapping("/id/{id}")
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
+        Transaction txn = transactionService.getTransactionById(id);
+        return ResponseEntity.ok(txn);
+    }
+
+    // Read transactions by card ID
+    @GetMapping("/card/{cardId}")
     public ResponseEntity<List<Transaction>> getTransactionsByCardId(@PathVariable Long cardId) {
         List<Transaction> transactions = transactionService.getTransactionHistoryByCardId(cardId);
         return ResponseEntity.ok(transactions);
+    }
+
+    // Update an existing transaction
+    @PutMapping("/id/{id}")
+    public ResponseEntity<Transaction> updateTransaction(
+            @PathVariable Long id,
+            @RequestBody Transaction transaction) {
+        Transaction updated = transactionService.updateTransaction(id, transaction);
+        return ResponseEntity.ok(updated);
+    }
+
+    // Delete a transaction
+    @DeleteMapping("/id/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
+        transactionService.deleteTransaction(id);
+        return ResponseEntity.noContent().build();
     }
 }

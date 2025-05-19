@@ -2,12 +2,7 @@ package com.zeta.backend.service;
 
 import com.zeta.backend.exception.ResourceNotFoundException;
 import com.zeta.backend.model.BNPLInstallment;
-import com.zeta.backend.model.Card;
-import com.zeta.backend.model.Transaction;
 import com.zeta.backend.repository.BNPLInstallmentRepository;
-import com.zeta.backend.repository.CardRepository;
-import com.zeta.backend.repository.TransactionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,49 +13,61 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BNPLPaymentService implements IBNPLPaymentService {
 
-    private final BNPLInstallmentRepository bnplInstallmentRepository;
-    private final TransactionRepository transactionRepository;
-    private final CardRepository cardRepository;
+    private final BNPLInstallmentRepository repository;
 
     @Override
-    @Transactional
     public void payInstallment(Long installmentId, Double amount) {
-        if (amount == null || amount <= 0) {
-            throw new IllegalArgumentException("Payment amount must be positive");
-        }
-
-        BNPLInstallment installment = bnplInstallmentRepository.findById(installmentId)
+        BNPLInstallment installment = repository.findById(installmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Installment not found"));
-
-        if (Boolean.TRUE.equals(installment.getIsPaid())) {
-            throw new IllegalStateException("Installment already paid");
+        if (!installment.getAmount().equals(amount)) {
+            throw new IllegalArgumentException("Amount mismatch");
         }
-
-        if (!amount.equals(installment.getAmount())) {
-            throw new IllegalArgumentException(String.format(
-                    "Payment amount %.2f must equal the installment amount %.2f",
-                    amount, installment.getAmount()));
-        }
-
-        // Mark installment paid
         installment.setIsPaid(true);
-        bnplInstallmentRepository.save(installment);
-
-        // Refund amount back to card available limit
-        Transaction transaction = installment.getTransaction();
-        Card card = transaction.getCard();
-        card.setAvailableLimit(card.getAvailableLimit() + amount);
-        cardRepository.save(card);
+        repository.save(installment);
     }
 
     @Override
     public List<BNPLInstallment> getPendingInstallmentsByTransactionId(Long transactionId) {
-        return bnplInstallmentRepository.findByTransactionIdAndIsPaidFalse(transactionId);
+        return repository.findByTransaction_IdAndIsPaidFalse(transactionId);
     }
 
     @Override
     public List<BNPLInstallment> getOverdueInstallmentsByCardId(Long cardId) {
-        LocalDate today = LocalDate.now();
-        return bnplInstallmentRepository.findOverdueByCardId(cardId, today);
+        return repository.findByTransaction_Card_CardIdAndIsPaidFalseAndDueDateBefore(cardId, LocalDate.now());
+    }
+
+    // 🔁 CRUD Implementation
+
+    @Override
+    public List<BNPLInstallment> getAllInstallments() {
+        return repository.findAll();
+    }
+
+    @Override
+    public BNPLInstallment getInstallmentById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Installment not found"));
+    }
+
+    @Override
+    public BNPLInstallment createInstallment(BNPLInstallment installment) {
+        return repository.save(installment);
+    }
+
+    @Override
+    public BNPLInstallment updateInstallment(Long id, BNPLInstallment updated) {
+        BNPLInstallment existing = getInstallmentById(id);
+        existing.setAmount(updated.getAmount());
+        existing.setDueDate(updated.getDueDate());
+        existing.setIsPaid(updated.getIsPaid());
+        existing.setInstallmentNumber(updated.getInstallmentNumber());
+        existing.setTransaction(updated.getTransaction());
+        return repository.save(existing);
+    }
+
+    @Override
+    public void deleteInstallment(Long id) {
+        BNPLInstallment existing = getInstallmentById(id);
+        repository.delete(existing);
     }
 }
