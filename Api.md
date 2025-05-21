@@ -95,4 +95,4 @@
 `PUT http://localhost:8080/api/cards/1/status?status=ACTIVE`
 
 - Replace `1` with the actual card ID.
-- Status options: `ACTIVE`, `BLOCKED`, `INACTIVE`, etc.
+- Status options: `ACTIVE`, `BLOCKED`
