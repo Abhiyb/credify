@@ -9,8 +9,9 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
+    Long countByCardId(Long cardId);
+
     List<Transaction> findByCardId(Long cardId);
 
     List<Transaction> findByIsBNPLTrue();
 }
-

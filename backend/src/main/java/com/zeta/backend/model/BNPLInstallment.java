@@ -1,10 +1,13 @@
 package com.zeta.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zeta.backend.model.Transaction;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "bnpl_installments")
 @Data
@@ -19,6 +22,7 @@ public class BNPLInstallment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id", nullable = false)
+    @JsonIgnore
     private Transaction transaction;
 
     @Column(name = "installment_number", nullable = false)
