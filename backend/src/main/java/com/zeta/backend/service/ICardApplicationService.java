@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ICardApplicationService {
     CardApplication apply(CardApplication cardApplication);
-    CardApplication getApplicationsByUserId(Long userId);
+    List<CardApplication> getApplicationsByUserId(Long userId);
 }
