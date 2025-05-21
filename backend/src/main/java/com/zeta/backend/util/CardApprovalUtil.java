@@ -29,4 +29,14 @@ public class CardApprovalUtil {
 
         return income * baseMultiplier;
     }
+
+    public static double getMinLimitForCardAndIncome(String cardType, double income) {
+        double baseMultiplier = switch (cardType.toUpperCase()) {
+            case "VISA" -> 0.1;
+            case "MASTERCARD" -> 0.2;
+            case "AMERICANEXPRESS", "AMEX" -> 0.4;
+            default -> 0.2;
+        };
+        return income * baseMultiplier;
+    }
 }
