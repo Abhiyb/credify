@@ -82,7 +82,7 @@
 ## 💳 5. Get Credit Card Details by User ID
 
 **Endpoint:**  
-`GET http://localhost:8080/api/cards/user/1`
+`GET http://localhost:8080/api/cards/1`
 
 > Ensure your controller path is `/user/{userId}` to avoid conflict with PUT mapping.
 
