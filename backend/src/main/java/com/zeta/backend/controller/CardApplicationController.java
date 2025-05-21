@@ -26,15 +26,18 @@ public class CardApplicationController {
 
 
     @GetMapping("/applications/{userId}")
-    public ResponseEntity<Map<String, Object>> getApplicationstatus(@PathVariable Long userId) {
-        CardApplication application = cardApplicationService.getApplicationsByUserId(userId);
+    public ResponseEntity<List<Map<String, Object>>> getApplicationstatus(@PathVariable Long userId) {
+        List<CardApplication> applications = cardApplicationService.getApplicationsByUserId(userId);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("cardType", application.getCardType());
-        response.put("status", application.getStatus());
-        response.put("requestedLimit", application.getRequestedLimit());
+        List<Map<String, Object>> response = applications.stream().map(app -> {
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("cardType", app.getCardType());
+            data.put("status", app.getStatus());
+            data.put("requestedLimit", app.getRequestedLimit());
+            data.put("applicationDate", app.getApplicationDate());
+            return data;
+        }).toList();
 
         return ResponseEntity.ok(response);
     }
-
 }
