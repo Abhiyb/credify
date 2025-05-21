@@ -2,6 +2,7 @@ package com.zeta.backend.service;
 
 import com.zeta.backend.model.UserProfile;
 import com.zeta.backend.repository.UserProfileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

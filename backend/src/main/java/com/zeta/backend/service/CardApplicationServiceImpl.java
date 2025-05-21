@@ -58,6 +58,7 @@ public class CardApplicationServiceImpl implements ICardApplicationService {
                     .availableLimit(savedApplication.getRequestedLimit())
                     .expiryDate(LocalDate.now().plusYears(5))
                     .application(savedApplication)
+                    .user(user)
                     .build();
 
             cardRepository.save(creditCard);
