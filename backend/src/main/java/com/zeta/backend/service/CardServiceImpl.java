@@ -5,6 +5,8 @@ import com.zeta.backend.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CardServiceImpl implements ICardService {
@@ -12,7 +14,7 @@ public class CardServiceImpl implements ICardService {
     private final CardRepository cardRepository;
 
     @Override
-    public Card getCardDetailsByUserId(Long userId) {
+    public List<Card> getCardDetailsByUserId(Long userId) {
         return cardRepository.findByApplicationUserUserId(userId);
     }
 
