@@ -37,7 +37,7 @@ public class Transaction {
     private Boolean isBNPL = false;
 
     @ManyToOne
-    @JoinColumn(name = "card_id", nullable = false)
+    @JoinColumn(name = "card_id")
     private Card card;
 }
 

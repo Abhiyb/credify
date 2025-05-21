@@ -15,6 +15,8 @@ public class BNPLPaymentController {
 
     private final IBNPLPaymentService bnplPaymentService;
 
+
+
     @PostMapping("/{installmentId}/pay")
     public ResponseEntity<String> payInstallment(
             @PathVariable Long installmentId,
@@ -35,7 +37,6 @@ public class BNPLPaymentController {
         return ResponseEntity.ok(overdue);
     }
 
-    // 🚀 Full CRUD Below
 
     @GetMapping
     public ResponseEntity<List<BNPLInstallment>> getAllInstallments() {
