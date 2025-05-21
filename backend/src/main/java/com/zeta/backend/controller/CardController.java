@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/cards")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173/")
 public class CardController {
 
     private final ICardService cardService;
