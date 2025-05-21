@@ -126,7 +126,13 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Invalid password");
         }
 
-        // Successful login
-        return ResponseEntity.ok(Map.of("message", "Login successful"));
+        // ✅ Return user details
+        return ResponseEntity.ok(Map.of(
+                "message", "Login successful",
+                "userId", user.getUserId(),
+                "fullName", user.getFullName(),
+                "email", user.getEmail()
+        ));
     }
+
 }

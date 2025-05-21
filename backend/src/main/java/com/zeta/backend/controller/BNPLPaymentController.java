@@ -15,8 +15,6 @@ public class BNPLPaymentController {
 
     private final IBNPLPaymentService bnplPaymentService;
 
-
-
     @PostMapping("/{installmentId}/pay")
     public ResponseEntity<String> payInstallment(
             @PathVariable Long installmentId,
