@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/profile")
 public class UserProfileController {
@@ -21,7 +22,7 @@ public class UserProfileController {
     // Create new profile with uniqueness checks
     @PostMapping
     public ResponseEntity<?> createProfile(@Valid @RequestBody UserProfile userProfile) {
-
+        System.out.println("Received user: " + userProfile);
         if (userProfileRepository.existsByEmail(userProfile.getEmail())) {
             return ResponseEntity.badRequest().body("Email already exists, please try a different one.");
         }
@@ -112,7 +113,7 @@ public class UserProfileController {
         public void setPassword(String password) { this.password = password; }
     }
 
-    // Login endpoint
+    // Inside UserProfileController.java
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Optional<UserProfile> userOpt = userProfileRepository.findByEmail(loginRequest.getEmail());
@@ -126,13 +127,12 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Invalid password");
         }
 
-        // ✅ Return user details
+        // ✅ Send back userId
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
-                "userId", user.getUserId(),
-                "fullName", user.getFullName(),
-                "email", user.getEmail()
+                "userId", user.getUserId()
         ));
     }
+
 
 }
