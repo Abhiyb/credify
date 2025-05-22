@@ -1,4 +1,3 @@
-
 # 💳 Credit Card Management API — Usage Guide
 
 ## ✅ 1. User Registration
@@ -51,7 +50,7 @@
 }
 ```
 
-> 🔁 Repeat the same for multiple card types (e.g., `MASTER`, `RUPAY`).
+> 🔁 Repeat the same for multiple card types (e.g., `MASTER`, `RUPAY`)
 
 ---
 
@@ -83,7 +82,7 @@
 ## 💳 5. Get Credit Card Details by User ID
 
 **Endpoint:**  
-`GET http://localhost:8080/api/cards/user/1`
+`GET http://localhost:8080/api/cards/1`
 
 > Ensure your controller path is `/user/{userId}` to avoid conflict with PUT mapping.
 
@@ -96,3 +95,13 @@
 
 - Replace `1` with the actual card ID.
 - Status options: `ACTIVE`, `BLOCKED`
+
+---
+
+## 💰 7. Update Credit Limit of a Card
+
+**Endpoint:**  
+`PUT http://localhost:8080/cards/1/limit?newLimit=60000`
+
+- Replace `1` with the actual card ID.
+- `newLimit` is the new credit limit to be assigned.

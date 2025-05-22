@@ -29,4 +29,8 @@ public class Card {
     @OneToOne
     @JoinColumn(name = "application_id")
     private CardApplication application;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserProfile user;
 }

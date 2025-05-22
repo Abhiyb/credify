@@ -34,4 +34,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGeneric(Exception ex) {
         return ResponseEntity.internalServerError().body("Internal Server Error: " + ex.getMessage());
     }
+
+    @ExceptionHandler(CardNotFoundException.class)
+    public ResponseEntity<String> handleCardNotFound(CardNotFoundException message) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message.getMessage());
+    }
+
+    @ExceptionHandler(InvalidLimitUpdateException.class)
+    public ResponseEntity<String> handleInvalidLimitUpdate(InvalidLimitUpdateException message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message.getMessage());
+    }
 }
