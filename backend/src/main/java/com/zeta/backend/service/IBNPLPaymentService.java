@@ -21,4 +21,7 @@ public interface IBNPLPaymentService {
     BNPLInstallment updateInstallment(Long id, BNPLInstallment updated);
 
     void deleteInstallment(Long id);
+
+    List<BNPLInstallment> getAllInstallmentsByTransactionId(Long transactionId);
+
 }

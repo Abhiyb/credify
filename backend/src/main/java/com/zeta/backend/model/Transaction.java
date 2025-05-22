@@ -36,6 +36,10 @@ public class Transaction {
     @Column(name = "is_bnpl")
     private Boolean isBNPL = false;
 
+    @Column(name = "status")
+    private String status;
+
+
     @ManyToOne
     @JoinColumn(name = "card_id")
     private Card card;

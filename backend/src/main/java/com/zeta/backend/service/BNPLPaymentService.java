@@ -36,6 +36,11 @@ public class BNPLPaymentService implements IBNPLPaymentService {
         return repository.findByTransaction_Card_CardIdAndIsPaidFalseAndDueDateBefore(cardId, LocalDate.now());
     }
 
+    @Override
+    public List<BNPLInstallment> getAllInstallmentsByTransactionId(Long transactionId) {
+        return repository.findByTransactionId(transactionId);
+    }
+
     // 🔁 CRUD Implementation
 
     @Override
