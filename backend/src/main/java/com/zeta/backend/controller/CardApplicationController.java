@@ -13,6 +13,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/cards")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class CardApplicationController {
 
     private final ICardApplicationService cardApplicationService;
