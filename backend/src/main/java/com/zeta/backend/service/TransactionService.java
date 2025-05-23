@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -54,6 +55,11 @@ public class TransactionService implements ITransactionService {
         cardRepository.save(card);
 
         transaction.setIsBNPL(false);
+
+        if (transaction.getStatus() == null) {
+            transaction.setStatus("Completed"); // or "Pending" based on your business logic
+        }
+
         return transactionRepository.save(transaction);
     }
 
@@ -61,7 +67,6 @@ public class TransactionService implements ITransactionService {
     @Transactional
     public Transaction simulateBNPLTransaction(Transaction transaction, InstallmentPlan plan) {
         validateTransactionAmount(transaction.getAmount());
-
         Card card = getCard(transaction.getCard().getCardId());
         validateCard(card, transaction.getAmount());
 
@@ -69,17 +74,24 @@ public class TransactionService implements ITransactionService {
         cardRepository.save(card);
 
         transaction.setIsBNPL(true);
+
+        if (transaction.getStatus() == null) {
+            transaction.setStatus("Pending"); // default status for BNPL transactions
+        }
+
         Transaction savedTransaction = transactionRepository.save(transaction);
         createInstallments(savedTransaction, plan.getMonths());
         return savedTransaction;
     }
 
+    @Transactional
     private void createInstallments(Transaction transaction, int installmentCount) {
         double totalAmount = transaction.getAmount();
         double installmentAmount = Math.round((totalAmount / installmentCount) * 100.0) / 100.0;
         LocalDate firstDueDate = LocalDate.now().plusMonths(1);
 
         double totalCreated = 0;
+        List<BNPLInstallment> installments = new ArrayList<>();
         for (int i = 1; i <= installmentCount; i++) {
             double amount = (i == installmentCount) ? totalAmount - totalCreated : installmentAmount;
             totalCreated += amount;
@@ -92,9 +104,32 @@ public class TransactionService implements ITransactionService {
                     .isPaid(false)
                     .build();
 
-            bnplInstallmentRepository.save(installment);
+            installments.add(installment);
         }
+        bnplInstallmentRepository.saveAll(installments);
     }
+
+//    private void createInstallments(Transaction transaction, int installmentCount) {
+//        double totalAmount = transaction.getAmount();
+//        double installmentAmount = Math.round((totalAmount / installmentCount) * 100.0) / 100.0;
+//        LocalDate firstDueDate = LocalDate.now().plusMonths(1);
+//
+//        double totalCreated = 0;
+//        for (int i = 1; i <= installmentCount; i++) {
+//            double amount = (i == installmentCount) ? totalAmount - totalCreated : installmentAmount;
+//            totalCreated += amount;
+//
+//            BNPLInstallment installment = BNPLInstallment.builder()
+//                    .transaction(transaction)
+//                    .installmentNumber(i)
+//                    .amount(amount)
+//                    .dueDate(firstDueDate.plusMonths(i - 1))
+//                    .isPaid(false)
+//                    .build();
+//
+//            bnplInstallmentRepository.save(installment);
+//        }
+//    }
 
     @Override
     public List<Transaction> getTransactionHistoryByCardId(Long cardId) {
@@ -119,6 +154,8 @@ public class TransactionService implements ITransactionService {
         existing.setCategory(updatedTransaction.getCategory());
         existing.setMerchantName(updatedTransaction.getMerchantName());
         existing.setTransactionDate(updatedTransaction.getTransactionDate());
+        existing.setStatus(updatedTransaction.getStatus());  // update status too
+        existing.setIsBNPL(updatedTransaction.getIsBNPL());  // update BNPL flag if needed
         return transactionRepository.save(existing);
     }
 

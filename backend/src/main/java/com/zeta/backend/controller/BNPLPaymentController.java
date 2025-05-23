@@ -14,6 +14,13 @@ import java.util.List;
 public class BNPLPaymentController {
 
     private final IBNPLPaymentService bnplPaymentService;
+    @GetMapping("/transaction/{transactionId}")
+    public ResponseEntity<List<BNPLInstallment>> getAllInstallmentsByTransactionId(@PathVariable Long transactionId) {
+        List<BNPLInstallment> installments = bnplPaymentService.getAllInstallmentsByTransactionId(transactionId);
+        return ResponseEntity.ok(installments);
+    }
+
+
 
     @PostMapping("/{installmentId}/pay")
     public ResponseEntity<String> payInstallment(

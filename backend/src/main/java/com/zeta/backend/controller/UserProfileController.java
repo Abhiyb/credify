@@ -127,7 +127,26 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Invalid password");
         }
 
-        // ✅ Send back userId
+        // ✅ Return user details
+        return ResponseEntity.ok(Map.of(
+                "message", "Login successful",
+                "userId", user.getUserId()
+
+        ));
+    }
+
+    @GetMapping("/{userId}/bnpl-eligibility")
+    public ResponseEntity<?> checkBnplEligibility(@PathVariable Long userId) {
+        Optional<UserProfile> userOpt = userProfileRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+        UserProfile user = userOpt.get();
+        Boolean eligible = user.getIsEligibleForBNPL();  // uses your derived field
+        return ResponseEntity.ok(Map.of(
+                "eligible", eligible,
+                "message", eligible ? "You are eligible for BNPL" : "You are not eligible for BNPL"
+   
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "userId", user.getUserId()

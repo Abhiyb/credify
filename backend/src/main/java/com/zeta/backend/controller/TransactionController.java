@@ -1,6 +1,8 @@
 package com.zeta.backend.controller;
 
 import com.zeta.backend.enums.InstallmentPlan;
+import com.zeta.backend.exception.ResourceNotFoundException;
+import com.zeta.backend.model.Card;
 import com.zeta.backend.model.Transaction;
 import com.zeta.backend.service.ITransactionService;
 import lombok.RequiredArgsConstructor;
@@ -12,15 +14,27 @@ import java.util.List;
 @RestController
 @RequestMapping("/transactions")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173/")
+
 public class TransactionController {
 
     private final ITransactionService transactionService;
+    private final com.zeta.backend.repository.CardRepository cardRepository;
 
     // Create or simulate transaction (regular or BNPL)
+
     @PostMapping
+
     public ResponseEntity<Transaction> simulateTransaction(
             @RequestBody Transaction transaction,
             @RequestParam(value = "plan", defaultValue = "THREE") InstallmentPlan plan) {
+
+        if (transaction.getCard() == null && transaction.getCardId() != null) {
+            Card card = cardRepository.findById(transaction.getCardId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
+            transaction.setCard(card);
+        }
+
         Transaction saved;
         if (Boolean.TRUE.equals(transaction.getIsBNPL())) {
             saved = transactionService.simulateBNPLTransaction(transaction, plan);
@@ -29,6 +43,7 @@ public class TransactionController {
         }
         return ResponseEntity.ok(saved);
     }
+
 
     // Read all transactions
     @GetMapping
