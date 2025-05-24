@@ -157,26 +157,31 @@ const fetchDashboardData = async () => {
     }
 
     try {
-      let totalTransactionsThisMonth = 0;
-      for (const cardId of allCardIds) {
-        const transactionsResponse = await fetch(`${API_BASE_URL}/transactions/card/${cardId}`);
-        if (transactionsResponse.ok) {
-          const transactions = await transactionsResponse.json();
-          const currentMonth = new Date().getMonth();
-          const currentYear = new Date().getFullYear();
-          const thisMonthTransactions = transactions.filter(transaction => {
-            const transactionDate = new Date(transaction.transactionDate || transaction.createdAt);
-            return transactionDate.getMonth() === currentMonth && 
-                   transactionDate.getFullYear() === currentYear;
-          });
-          totalTransactionsThisMonth += thisMonthTransactions.length;
-        }
-      }
-      dashboardData.value.recentTransactions = totalTransactionsThisMonth;
-    } catch (transError) {
-      console.error('Error fetching transactions:', transError);
-      dashboardData.value.recentTransactions = 0;
+  let totalTransactionsThisMonth = 0;
+  for (const cardId of allCardIds) {
+    const transactionsResponse = await fetch(`${API_BASE_URL}/transactions/card/${cardId}`);
+    if (transactionsResponse.ok) {
+      const transactions = await transactionsResponse.json();
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const thisMonthTransactions = transactions.filter(transaction => {
+        // Use transactionDate if available, otherwise use card.user.createdAt
+        const dateToUse = transaction.transactionDate || transaction.card?.user?.createdAt;
+        if (!dateToUse) return false; // Skip if no valid date is available
+        const transactionDate = new Date(dateToUse);
+        return transactionDate.getMonth() === currentMonth && 
+               transactionDate.getFullYear() === currentYear;
+      });
+      totalTransactionsThisMonth += thisMonthTransactions.length;
     }
+  }
+  dashboardData.value.recentTransactions = totalTransactionsThisMonth;
+} catch (transError) {
+  console.error('Error fetching transactions:', transError);
+  dashboardData.value.recentTransactions = 0;
+} finally {
+  loading.value = false;
+}
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
   } finally {
