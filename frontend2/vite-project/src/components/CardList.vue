@@ -103,62 +103,31 @@
         </div>
       </div>
       
-      <!-- Card Limit Modal -->
-      <div v-if="limitModalOpen" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg max-w-md w-full p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Manage Card Limit</h3>
-          
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Card:</label>
-            <div class="mt-1 text-sm text-gray-900">
-              {{ selectedCard?.cardType || 'CREDIT CARD' }} 
-              (**** {{ selectedCard?.cardNumber ? selectedCard.cardNumber.slice(-4) : '' }})
-            </div>
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Current Limit</label>
-            <div class="mt-1 text-sm text-gray-900">₹{{ selectedCard?.creditLimit?.toFixed(2) || '0.00' }}</div>
-          </div>
-          
-          <div class="mb-6">
-            <label for="new-limit" class="block text-sm font-medium text-gray-700">New Limit</label>
-            <input 
-              type="number" 
-              id="new-limit" 
-              v-model="newLimit" 
-              min="0"
-              step="0.01"
-              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" 
-            />
-          </div>
-          
-          <div class="flex space-x-3">
-            <button 
-              @click="updateCardLimit" 
-              :disabled="updatingLimit"
-              class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {{ updatingLimit ? 'UPDATING...' : 'UPDATE LIMIT' }}
-            </button>
-            <button 
-              @click="closeLimitModal" 
-              :disabled="updatingLimit"
-              class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Card Limit Modal Component -->
+      <CardLimitModal 
+        :is-open="limitModalOpen"
+        :card="selectedCard"
+        :is-updating="updatingLimit"
+        @close="closeLimitModal"
+        @update-limit="updateCardLimit"
+      />
 
-      <!-- Success Toast -->
-      <div v-if="showSuccessToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+      <!-- Success/Error Toast -->
+      <div v-if="showSuccessToast" 
+           :class="[
+             'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 max-w-md',
+             toastType === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+           ]">
         <div class="flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <!-- Success Icon -->
+          <svg v-if="toastType === 'success'" class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
-          {{ successMessage }}
+          <!-- Error Icon -->
+          <svg v-else class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span class="text-sm">{{ successMessage }}</span>
         </div>
       </div>
     </div>
@@ -169,20 +138,22 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Navbar from './Navbar.vue';
+import CardLimitModal from '../components/ManageLimit.vue';
 
 const router = useRouter();
 const API_BASE_URL = 'http://localhost:8089';
 
+// Reactive variables
 const cards = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const limitModalOpen = ref(false);
 const selectedCard = ref(null);
-const newLimit = ref(0);
 const updatingStatus = ref(null);
 const updatingLimit = ref(false);
 const showSuccessToast = ref(false);
 const successMessage = ref('');
+const toastType = ref('success');
 const userId = ref(null);
 
 const getUserIdFromStorage = () => {
@@ -240,10 +211,10 @@ const toggleCardStatus = async (card) => {
       cards.value[cardIndex] = updatedCard;
     }
     
-    showToast(`Card has been ${newStatus.toLowerCase()} successfully!`);
+    showToast(`Card has been ${newStatus.toLowerCase()} successfully!`, 'success');
   } catch (err) {
     console.error('Error updating card status:', err);
-    showToast('Failed to update card status. Please try again.');
+    showToast('Failed to update card status. Please try again.', 'error');
   } finally {
     updatingStatus.value = null;
   }
@@ -251,43 +222,65 @@ const toggleCardStatus = async (card) => {
 
 const showLimitModal = (card) => {
   selectedCard.value = card;
-  newLimit.value = card.creditLimit || 0;
   limitModalOpen.value = true;
 };
 
 const closeLimitModal = () => {
   limitModalOpen.value = false;
   selectedCard.value = null;
-  newLimit.value = 0;
 };
 
-const updateCardLimit = async () => {
-  if (!selectedCard.value || !newLimit.value || newLimit.value <= 0) {
-    showToast('Please enter a valid limit amount.');
+const updateCardLimit = async (data) => {
+  if (!data.newLimit || data.newLimit <= 0) {
+    showToast('Please enter a valid limit amount.', 'error');
     return;
   }
   
   updatingLimit.value = true;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/cards/${selectedCard.value.cardId}/limit?newLimit=${newLimit.value}`, {
+    const response = await fetch(`${API_BASE_URL}/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
       method: 'PUT',
     });
     
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    // Handle both success and error responses
+    const responseText = await response.text();
     
-    const cardIndex = cards.value.findIndex(c => c.cardId === selectedCard.value.cardId);
-    if (cardIndex !== -1) {
-      cards.value[cardIndex].creditLimit = parseFloat(newLimit.value);
-      cards.value[cardIndex].availableLimit = parseFloat(newLimit.value);
+    if (response.ok) {
+      // Success case
+      const cardIndex = cards.value.findIndex(c => c.cardId === data.cardId);
+      if (cardIndex !== -1) {
+        // Update both creditLimit and calculate new availableLimit properly
+        const oldLimit = cards.value[cardIndex].creditLimit;
+        const newLimitValue = parseFloat(data.newLimit);
+        const availableLimitDifference = newLimitValue - oldLimit;
+        
+        cards.value[cardIndex].creditLimit = newLimitValue;
+        cards.value[cardIndex].availableLimit += availableLimitDifference;
+      }
+      
+      closeLimitModal();
+      showToast(`Card limit updated to ₹${parseFloat(data.newLimit).toFixed(2)} successfully!`, 'success');
+      
+    } else {
+      // Error case - display the error message from backend
+      let errorMessage = responseText;
+      
+      // If response is JSON, try to extract error message
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message || errorData.error || responseText;
+      } catch (e) {
+        // If not JSON, use the text as is
+        errorMessage = responseText;
+      }
+      
+      showToast(errorMessage, 'error');
     }
-    
-    closeLimitModal();
-    showToast(`Card limit updated to ₹${parseFloat(newLimit.value).toFixed(2)} successfully!`);
     
   } catch (err) {
     console.error('Error updating card limit:', err);
-    showToast('Failed to update card limit. Please try again.');
+    showToast('Failed to update card limit. Network error occurred.', 'error');
   } finally {
     updatingLimit.value = false;
   }
@@ -315,12 +308,13 @@ const formatExpiryDate = (expiryDate) => {
   return expiryDate;
 };
 
-const showToast = (message) => {
+const showToast = (message, type = 'success') => {
   successMessage.value = message;
+  toastType.value = type;
   showSuccessToast.value = true;
   setTimeout(() => {
     showSuccessToast.value = false;
-  }, 3000);
+  }, 4000);
 };
 
 const navigateToApplyCard = () => {
