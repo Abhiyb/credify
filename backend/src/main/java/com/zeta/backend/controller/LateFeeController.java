@@ -3,7 +3,7 @@ package com.zeta.backend.controller;
 import com.zeta.backend.exception.ResourceNotFoundException;
 import com.zeta.backend.model.BNPLInstallment;
 import com.zeta.backend.repository.BNPLInstallmentRepository;
-import com.zeta.backend.service.LateFeeCalculator;
+import com.zeta.backend.service.LateFeeCalculatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LateFeeController {
 
-    private final LateFeeCalculator lateFeeCalculator;
+    private final LateFeeCalculatorService lateFeeCalculatorService;
     private final BNPLInstallmentRepository bnplInstallmentRepository;
 
 
     @GetMapping("/{cardId}")
     public ResponseEntity<Double> getLateFeeForCard(@PathVariable Long cardId) {
-        double fee = lateFeeCalculator.calculateTotalLateFeeByCardId(cardId);
+        double fee = lateFeeCalculatorService.calculateTotalLateFeeByCardId(cardId);
         return ResponseEntity.ok(fee);
     }
 
@@ -28,6 +28,6 @@ public class LateFeeController {
         BNPLInstallment installment = bnplInstallmentRepository.findById(installmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Installment not found"));
 
-        return lateFeeCalculator.calculateLateFeeForInstallment(installment);
+        return lateFeeCalculatorService.calculateLateFeeForInstallment(installment);
     }
 }
