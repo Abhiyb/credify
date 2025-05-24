@@ -20,8 +20,6 @@ public class BNPLPaymentController {
         return ResponseEntity.ok(installments);
     }
 
-
-
     @PostMapping("/{installmentId}/pay")
     public ResponseEntity<String> payInstallment(
             @PathVariable Long installmentId,
