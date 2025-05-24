@@ -45,11 +45,7 @@ public class UserProfile {
     @Column(name = "annual_income", nullable = false)
     private Double annualIncome;
 
-    @NotBlank(message = "Password is required")
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$",
-            message = "Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character (@#$%^&+=!)"
-    )
+
     @Column(nullable = false)
     private String password;
 
