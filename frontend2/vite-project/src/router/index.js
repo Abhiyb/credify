@@ -7,8 +7,8 @@ import CreditCard from '../components/CardList.vue'
 import ApplyCard from '../components/ApplyCard.vue'
 import Profile from '../components/Profile.vue'
 import Application from '../components/Application.vue'
-import BNPLModule from '../components/BNPLModule.vue'
 import LandingPage from '../pages/LandingPage.vue'
+import TransactionWithBNPLFeatureModule from '../components/TransactionWithBNPLFeatureModule.vue'
 
 
 const routes = [
@@ -22,7 +22,7 @@ const routes = [
   { path: '/apply-card', component: ApplyCard, meta: { requiresAuth: true } },
   { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/applications', component:Application , meta: { requiresAuth: true } },
-  { path: '/transactions', component: BNPLModule, meta: { requiresAuth: true } },
+  { path: '/transactions', component: TransactionWithBNPLFeatureModule, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
