@@ -1461,8 +1461,8 @@ onMounted(() => {
 
 <style>
 :root {
-  --color-primary: #7c3aed;       /* violet-600 */
-  --color-primary-dark: #6d28d9;
+  --color-primary: #007BFF;       /* violet-600 */
+  --color-primary-dark: ##007BFF;
   --color-primary-50: #eff6ff;
 }
 
