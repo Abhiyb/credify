@@ -344,12 +344,16 @@
         </div>
       </div>
     </section>
+
+    <ChatWidget/>
+    
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import ChatWidget from '../components/ChatWidget.vue';
 
 // Router for navigation
 const router = useRouter();

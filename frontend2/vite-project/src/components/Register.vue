@@ -289,15 +289,7 @@
         </div>
       </div>
 
-      <!-- Floating Help Button -->
-      <div class="fixed bottom-4 right-4 flex items-center space-x-2">
-        <button class="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 transition-all duration-300">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-          </svg>
-        </button>
-        <span class="text-sm text-gray-600">Need help?</span>
-      </div>
+      
     </div>
   </div>
 </template>

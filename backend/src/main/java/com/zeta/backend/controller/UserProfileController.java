@@ -3,7 +3,9 @@ package com.zeta.backend.controller;
 import com.zeta.backend.model.UserProfile;
 import com.zeta.backend.repository.UserProfileRepository;
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,10 +21,20 @@ public class UserProfileController {
     @Autowired
     private UserProfileRepository userProfileRepository;
 
-    // Create new profile with uniqueness checks
+    // Create new profile with uniqueness checks and password validation
     @PostMapping
     public ResponseEntity<?> createProfile(@Valid @RequestBody UserProfile userProfile) {
         System.out.println("Received user: " + userProfile);
+
+        // Validate password for creation
+        if (userProfile.getPassword() == null || userProfile.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().body("Password is required");
+        }
+        if (!userProfile.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
+            return ResponseEntity.badRequest().body(
+                    "Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character (@#$%^&+=!)");
+        }
+
         if (userProfileRepository.existsByEmail(userProfile.getEmail())) {
             return ResponseEntity.badRequest().body("Email already exists, please try a different one.");
         }
@@ -82,17 +94,12 @@ public class UserProfileController {
                 return ResponseEntity.badRequest().body("Full name already exists, please try a different one.");
             }
 
-            if (!profile.getPassword().equals(updatedProfile.getPassword()) &&
-                    userProfileRepository.existsByPassword(updatedProfile.getPassword())) {
-                return ResponseEntity.badRequest().body("Password already exists, please try a different one.");
-            }
-
+            // Update fields (excluding password)
             profile.setFullName(updatedProfile.getFullName());
             profile.setEmail(updatedProfile.getEmail());
             profile.setPhone(updatedProfile.getPhone());
             profile.setAddress(updatedProfile.getAddress());
             profile.setAnnualIncome(updatedProfile.getAnnualIncome());
-            profile.setPassword(updatedProfile.getPassword());
 
             UserProfile saved = userProfileRepository.save(profile);
             return ResponseEntity.ok(saved);
@@ -113,7 +120,7 @@ public class UserProfileController {
         public void setPassword(String password) { this.password = password; }
     }
 
-    // Inside UserProfileController.java
+    // Login endpoint
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Optional<UserProfile> userOpt = userProfileRepository.findByEmail(loginRequest.getEmail());
@@ -127,14 +134,13 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Invalid password");
         }
 
-        // ✅ Return user details
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "userId", user.getUserId()
-
         ));
     }
 
+    // Check BNPL eligibility
     @GetMapping("/{userId}/bnpl-eligibility")
     public ResponseEntity<?> checkBnplEligibility(@PathVariable Long userId) {
         Optional<UserProfile> userOpt = userProfileRepository.findById(userId);
@@ -142,12 +148,41 @@ public class UserProfileController {
             return ResponseEntity.status(404).body("User not found");
         }
         UserProfile user = userOpt.get();
-        Boolean eligible = user.getIsEligibleForBNPL();  // uses your derived field
+        Boolean eligible = user.getIsEligibleForBNPL();
         return ResponseEntity.ok(Map.of(
                 "eligible", eligible,
                 "message", eligible ? "You are eligible for BNPL" : "You are not eligible for BNPL"));
-
     }
 
+    // Update password endpoint
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<?> updatePassword(@PathVariable Long userId,
+                                            @RequestBody UserProfile updatedProfile) {
+        Optional<UserProfile> optionalUser = userProfileRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
 
+        UserProfile existingUser = optionalUser.get();
+
+        String newPassword = updatedProfile.getPassword();
+
+        if (newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body("Password is required");
+        }
+
+        if (!newPassword.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")) {
+            return ResponseEntity.badRequest().body(
+                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character");
+        }
+
+        if (userProfileRepository.existsByPassword(newPassword)) {
+            return ResponseEntity.badRequest().body("Password already exists, please try a different one");
+        }
+
+        existingUser.setPassword(newPassword);
+        userProfileRepository.save(existingUser);
+
+        return ResponseEntity.ok("Password updated successfully");
+    }
 }

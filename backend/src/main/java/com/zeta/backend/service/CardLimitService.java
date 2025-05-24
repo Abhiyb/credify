@@ -78,7 +78,9 @@ public class CardLimitService implements ICardLimitService {
     }
 
     private String updateLimit(Card card, Double newLimit, String message) {
+        Double newAvailablelimit = card.getAvailableLimit() + (newLimit - card.getCreditLimit());
         card.setCreditLimit(newLimit);
+        card.setAvailableLimit(newAvailablelimit);
         cardRepository.save(card);
         return message;
     }
