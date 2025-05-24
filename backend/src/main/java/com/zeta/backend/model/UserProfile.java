@@ -3,7 +3,6 @@ package com.zeta.backend.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -45,7 +44,7 @@ public class UserProfile {
     @Column(name = "annual_income", nullable = false)
     private Double annualIncome;
 
-
+    //-------
     @Column(nullable = false)
     private String password;
 

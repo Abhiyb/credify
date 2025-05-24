@@ -2,7 +2,6 @@ package com.zeta.backend.service;
 
 import com.zeta.backend.model.UserProfile;
 import com.zeta.backend.repository.UserProfileRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,6 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public UserProfile createProfile(UserProfile userProfile) {
-
         return userProfileRepository.save(userProfile);
     }
 
@@ -41,7 +39,6 @@ public class UserProfileServiceImpl implements UserProfileService {
 
             return userProfileRepository.save(profile);
         } else {
-            // Handle profile not found as per your app logic
             throw new RuntimeException("User profile not found");
         }
     }
