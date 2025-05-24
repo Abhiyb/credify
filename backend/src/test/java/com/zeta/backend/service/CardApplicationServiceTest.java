@@ -1,122 +1,128 @@
-//package com.zeta.backend.service;
-//
-//import com.zeta.backend.model.CardApplication;
-//import com.zeta.backend.model.UserProfile;
-//import com.zeta.backend.repository.CardApplicationRepository;
-//import com.zeta.backend.repository.UserProfileRepository;
-//import com.zeta.backend.util.CardApprovalUtil;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import java.time.LocalDate;
-//import java.util.Optional;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//class CardApplicationServiceTest {
-//
-//    @InjectMocks
-//    private CardApplicationServiceImpl cardApplicationService;
-//
-//    @Mock
-//    private CardApplicationRepository cardApplicationRepository;
-//
-//    @Mock
-//    private UserProfileRepository userProfileRepository;
-//
-//    @Captor
-//    private ArgumentCaptor<CardApplication> applicationCaptor;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//    }
-//
-//    @Test
-//    void testSubmitCardApplication_Success() {
-//        // Given
-//        Long userId = 1L;
-//
-//        UserProfile mockUser = UserProfile.builder()
-//                .userId(userId)
-//                .fullName("Test User")
-//                .annualIncome(800000.0)
-//                .build();
-//
-//        CardApplication application = new CardApplication();
-//        application.setUser(mockUser);
-//        application.setCardType("VISA");
-//        application.setRequestedLimit(200000.0);
-//
-//        when(userProfileRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-//        when(cardApplicationRepository.save(any(CardApplication.class))).thenAnswer(i -> i.getArgument(0));
-//
-//        // When
-//        CardApplication saved = cardApplicationService.apply(application);
-//
-//        // Then
-//        assertNotNull(saved);
-//        assertEquals("APPROVED", saved.getStatus());
-//        assertEquals("VISA", saved.getCardType());
-//        assertEquals(200000.0, saved.getRequestedLimit());
-//        assertEquals(mockUser, saved.getUser());
-//        assertEquals(LocalDate.now(), saved.getApplicationDate());
-//
-//        verify(cardApplicationRepository).save(applicationCaptor.capture());
-//        CardApplication captured = applicationCaptor.getValue();
-//        assertEquals("APPROVED", captured.getStatus());
-//    }
-//
-//    @Test
-//    void testGetApplicationByUserId_Success() {
-//        Long userId = 2L;
-//        UserProfile mockUser = new UserProfile();
-//        mockUser.setUserId(userId);
-//
-//        CardApplication mockApp = new CardApplication();
-//        mockApp.setCardType("MASTERCARD");
-//        mockApp.setStatus("PENDING");
-//        mockApp.setRequestedLimit(300000.0);
-//        mockApp.setUser(mockUser);
-//
-//        when(cardApplicationRepository.findById(userId)).thenReturn(Optional.of(mockApp));
-//
-//        CardApplication result = cardApplicationService.getApplicationsByUserId(userId);
-//
-//        assertNotNull(result);
-//        assertEquals("MASTERCARD", result.getCardType());
-//        assertEquals("PENDING", result.getStatus());
-//        assertEquals(300000.0, result.getRequestedLimit());
-//    }
-//
-//    @Test
-//    void testSubmitCardApplication_UserNotFound() {
-//        Long userId = 100L;
-//        CardApplication app = new CardApplication();
-//        UserProfile user = new UserProfile();
-//        user.setUserId(userId);
-//        app.setUser(user);
-//
-//        when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
-//
-//        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-//            cardApplicationService.apply(app);
-//        });
-//
-//        assertEquals("User not found with ID " + userId, ex.getMessage());
-//
-//    }
-//
-//    @Test
-//    void testGetApplicationByUserId_NotFound() {
-//        Long userId = 123L;
-//        when(cardApplicationRepository.findById(userId)).thenReturn(Optional.empty());
-//
-//        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-//            cardApplicationService.getApplicationsByUserId(userId);
-//        });
-//
-//        assertEquals("Card application not found", ex.getMessage());
-//    }
-//}
+package com.zeta.backend.service;
+
+import com.zeta.backend.exception.UserNotFoundException;
+import com.zeta.backend.model.*;
+import com.zeta.backend.repository.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.time.LocalDate;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@Slf4j
+class CardApplicationServiceTest {
+
+    @InjectMocks
+    private CardApplicationService service;
+
+    @Mock
+    private CardApplicationRepository applicationRepository;
+
+    @Mock
+    private UserProfileRepository userRepository;
+
+    @Mock
+    private CardRepository cardRepository;
+
+    private UserProfile mockUser;
+    private CardApplication mockApplication;
+
+    /**
+     * Sets up a mock user and a mock card application before each test case.
+     */
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+
+        mockUser = UserProfile.builder()
+                .userId(1L)
+                .fullName("sravani")
+                .annualIncome(600000.0)
+                .build();
+
+        mockApplication = CardApplication.builder()
+                .user(mockUser)
+                .cardType("VISA")
+                .requestedLimit(20000.0)
+                .build();
+
+        log.info("Test setup complete");
+    }
+
+    /**
+     * ✅ Test applying for a card when the user exists and meets approval criteria.
+     * Verifies that the application is saved with "APPROVED" status and a card is issued.
+     */
+    @Test
+    void applyCard_approvedStatus_savesApplicationAndCard() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        when(applicationRepository.save(any(CardApplication.class))).thenAnswer(i -> {
+            CardApplication app = i.getArgument(0);
+            app.setId(1L);
+            return app;
+        });
+
+        CardApplication result = service.apply(mockApplication);
+
+        log.info("Application result: status={}, date={}", result.getStatus(), result.getApplicationDate());
+        assertEquals("APPROVED", result.getStatus());
+        assertEquals(LocalDate.now(), result.getApplicationDate());
+        verify(cardRepository, times(1)).save(any(Card.class));
+    }
+
+    /**
+     * ✅ Test applying for a card with a non-existent user ID.
+     * Expects a RuntimeException to be thrown with a meaningful error message.
+     */
+    @Test
+    void applyCard_userNotFound_throwsException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            service.apply(mockApplication);
+        });
+
+        log.warn("Exception thrown as expected: {}", ex.getMessage());
+        assertTrue(ex.getMessage().contains("User not found with ID"));
+    }
+
+    /**
+     * ✅ Test retrieving all card applications for a valid user.
+     * Ensures that the returned list contains all applications linked to the user.
+     */
+    @Test
+    void getApplicationsByUserId_existingUser_returnsApplications() {
+        CardApplication app1 = CardApplication.builder().user(mockUser).build();
+        CardApplication app2 = CardApplication.builder().user(mockUser).build();
+
+        when(applicationRepository.findAll()).thenReturn(List.of(app1, app2));
+
+        List<CardApplication> results = service.getApplicationsByUserId(1L);
+
+        log.info("Found {} applications for user ID {}", results.size(), 1L);
+        assertEquals(2, results.size());
+    }
+
+    /**
+     * ✅ Test retrieving applications for a user when none exist.
+     * Expects a UserNotFoundException to be thrown.
+     */
+    @Test
+    void getApplicationsByUserId_noApplications_throwsException() {
+        when(applicationRepository.findAll()).thenReturn(Collections.emptyList());
+
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            service.getApplicationsByUserId(1L);
+        });
+
+        log.warn("Expected UserNotFoundException: {}", exception.getMessage());
+    }
+
+
+
+}
