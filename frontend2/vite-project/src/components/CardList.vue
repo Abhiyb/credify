@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Navbar -->
     <Navbar title="My Cards" />
-
+     <!-- navbar updated -->
     <!-- Main Content with padding to avoid overlap -->
     <div class="pt-32 md:pt-28">
       <div class="max-w-7xl mx-auto px-6">
