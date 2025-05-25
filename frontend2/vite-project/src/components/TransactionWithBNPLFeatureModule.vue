@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="bg-primary text-white p-6 flex justify-between items-center">
         <div>
-          <h1 class="text-2xl font-bold">Buy Now Pay Later, {{ fullName }}</h1>
+          <h1 class="text-2xl font-bold">Buy Now Pay Later</h1>
           <p class="text-sm opacity-80">Flexible payment options for your purchases</p>
         </div>
         <button 
@@ -333,7 +333,7 @@
           
           <div class="pt-6 flex flex-col md:flex-row justify-center space-y-3 md:space-y-0 md:space-x-3">
             <button 
-              @click="viewInstallments" 
+              @click="goToInstallments" 
               v-if="selectedPaymentMethod === 'bnpl'"
               class="px-6 py-3 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
               aria-label="View My Installments"
@@ -403,14 +403,14 @@
                   <input 
                     v-model="searchTransactionId" 
                     type="text" 
-                    placeholder="Transaction ID" 
+                    placeholder="Enter Transaction ID" 
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     aria-label="Search by Transaction ID"
                   />
                   <button 
                     @click="fetchInstallments" 
                     class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-                    :disabled="loading"
+                    :disabled="loading || !searchTransactionId"
                     aria-label="Search Installments"
                   >
                     <span v-if="loading">Loading...</span>
@@ -418,13 +418,22 @@
                   </button>
                 </div>
               </div>
-              <button 
-                @click="viewTransactionHistory" 
-                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                aria-label="View Transactions"
-              >
-                View Transactions
-              </button>
+              <div class="flex space-x-2">
+                <button 
+                  @click="viewTransactionHistory" 
+                  class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  aria-label="View Transactions"
+                >
+                  View Transactions
+                </button>
+                <button 
+                  @click="resetForm" 
+                  class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                  aria-label="New Payment"
+                >
+                  New Payment
+                </button>
+              </div>
             </div>
 
             <div v-if="displayedInstallments.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
@@ -556,14 +565,14 @@
                   <input 
                     v-model="searchCardId" 
                     type="text" 
-                    placeholder="Card ID" 
+                    placeholder="Enter Card ID" 
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     aria-label="Search by Card ID"
                   />
                   <button 
                     @click="fetchTransactions" 
                     class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-                    :disabled="loading"
+                    :disabled="loading || !searchCardId"
                     aria-label="Search Transactions"
                   >
                     <span v-if="loading">Loading...</span>
@@ -573,7 +582,7 @@
               </div>
               <div class="flex space-x-2">
                 <button 
-                  @click="viewInstallments" 
+                  @click="goToInstallments" 
                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                   aria-label="View Installments"
                 >
@@ -625,158 +634,158 @@
               </button>
             </div>
 
-            <div v-if="transactions.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
-              <p class="text-gray-500">No transactions found</p>
+            <div v-if="loading" class="text-center py-8 bg-gray-50 rounded-lg">
+              <p class="text-gray-500">Loading transactions...</p>
+            </div>
+            <div v-else-if="transactions.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
+              <p class="text-gray-500">No transactions found for this Card ID</p>
             </div>
 
-            <div v-else>
-              <!-- Transactions table -->
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaction ID
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Merchant
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Category
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Payment Method
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="transaction in transactions" :key="transaction.id">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{{ transaction.id }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ formatDate(transaction.transactionDate) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ transaction.merchantName }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ transaction.category }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        ₹{{ transaction.amount.toFixed(2) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span 
-                          :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${transaction.isBNPL ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
-                        >
-                          {{ transaction.isBNPL ? 'BNPL' : 'Paid in Full' }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span 
-                          :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${getStatusClass(transaction.status)}`"
-                        >
-                          {{ transaction.status }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          v-if="transaction.isBNPL"
-                          @click="viewTransactionInstallments(transaction.id)"
-                          class="text-primary hover:text-primary-dark"
-                          :aria-label="`View Installments for Transaction ${transaction.id}`"
-                        >
-                          View Installments
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Transaction ID
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Merchant
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Method
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="transaction in transactions" :key="transaction.id">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{{ transaction.id }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ formatDate(transaction.transactionDate) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ transaction.merchantName || 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ transaction.category || 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      ₹{{ transaction.amount?.toFixed(2) || '0.00' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span 
+                        :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${transaction.isBNPL ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
+                      >
+                        {{ transaction.isBNPL ? 'BNPL' : 'Paid in Full' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span 
+                        :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${getStatusClass(transaction.status)}`"
+                      >
+                        {{ transaction.status || 'Unknown' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button 
+                        v-if="transaction.isBNPL"
+                        @click="viewTransactionInstallments(transaction.id)"
+                        class="text-primary hover:text-primary-dark"
+                        :aria-label="`View Installments for Transaction ${transaction.id}`"
+                      >
+                        View Installments
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-              <!-- Pagination -->
-              <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
-                <div class="flex-1 flex justify-between sm:hidden">
-                  <button 
-                    @click="prevPage" 
-                    :disabled="currentPage === 1"
-                    :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
-                            ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
-                    aria-label="Previous Page"
-                  >
-                    Previous
-                  </button>
-                  <button 
-                    @click="nextPage" 
-                    :disabled="currentPage === totalPages"
-                    :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
-                            ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
-                    aria-label="Next Page"
-                  >
-                    Next
-                  </button>
+            <!-- Pagination -->
+            <div v-if="transactions.length > 0" class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <button 
+                  @click="prevPage" 
+                  :disabled="currentPage === 1"
+                  :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
+                          ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
+                  aria-label="Previous Page"
+                >
+                  Previous
+                </button>
+                <button 
+                  @click="nextPage" 
+                  :disabled="currentPage === totalPages"
+                  :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
+                          ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
+                  aria-label="Next Page"
+                >
+                  Next
+                </button>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+                    <span class="font-medium">{{ Math.min(currentPage * pageSize, totalTransactions) }}</span> of 
+                    <span class="font-medium">{{ totalTransactions }}</span> results
+                  </p>
                 </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p class="text-sm text-gray-700">
-                      Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
-                      <span class="font-medium">{{ Math.min(currentPage * pageSize, totalTransactions) }}</span> of 
-                      <span class="font-medium">{{ totalTransactions }}</span> results
-                    </p>
-                  </div>
-                  <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <button 
-                        @click="prevPage" 
-                        :disabled="currentPage === 1"
-                        :class="`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
-                                ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
-                        aria-label="Previous Page"
-                      >
-                        <span class="sr-only">Previous</span>
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                      <button 
-                        v-for="page in paginationRange" 
-                        :key="page"
-                        @click="goToPage(page)"
-                        :class="`relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                                ${currentPage === page ? 'z-10 bg-primary border-primary text-white' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`"
-                        :aria-label="`Go to Page ${page}`"
-                      >
-                        {{ page }}
-                      </button>
-                      <button 
-                        @click="nextPage" 
-                        :disabled="currentPage === totalPages"
-                        :class="`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
-                                ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
-                        aria-label="Next Page"
-                      >
-                        <span class="sr-only">Next</span>
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                    </nav>
-                  </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button 
+                      @click="prevPage" 
+                      :disabled="currentPage === 1"
+                      :class="`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
+                              ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
+                      aria-label="Previous Page"
+                    >
+                      <span class="sr-only">Previous</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    <button 
+                      v-for="page in paginationRange" 
+                      :key="page"
+                      @click="goToPage(page)"
+                      :class="`relative inline-flex items-center px-4 py-2 border text-sm font-medium
+                              ${currentPage === page ? 'z-10 bg-primary border-primary text-white' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`"
+                      :aria-label="`Go to Page ${page}`"
+                    >
+                      {{ page }}
+                    </button>
+                    <button 
+                      @click="nextPage" 
+                      :disabled="currentPage === totalPages"
+                      :class="`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
+                              ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
+                      aria-label="Next Page"
+                    >
+                      <span class="sr-only">Next</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
                 </div>
               </div>
             </div>
@@ -1040,6 +1049,7 @@ const confirmTransaction = async () => {
       ? `http://localhost:8089/transactions/bnpl?plan=${planMapping[selectedPlan.value.months]}`
       : `http://localhost:8089/transactions`;
     
+    console.log(`Confirming transaction with payload:`, payload, `to endpoint: ${endpoint}`);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1048,10 +1058,12 @@ const confirmTransaction = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Transaction failed:', errorData);
       throw new Error(errorData.message || `Transaction failed: ${response.status}`);
     }
 
     const savedTransaction = await response.json();
+    console.log('Saved transaction:', savedTransaction);
     transactions.value.unshift({
       ...savedTransaction,
       isBNPL: savedTransaction.isBNPL ?? savedTransaction.bnpl ?? false
@@ -1063,35 +1075,39 @@ const confirmTransaction = async () => {
     ].slice(-10))); // Keep last 10 transactions
     currentStep.value = 3;
   } catch (error) {
+    console.error('Confirm transaction error:', error);
     errorMessage.value = `Error processing transaction: ${error.message}`;
   } finally {
     loading.value = false;
   }
 };
 
-const viewInstallments = async () => {
-  const transId = prompt('Enter Transaction ID to view installments:');
-  if (!transId || !/^\d+$/.test(transId.trim())) {
-    errorMessage.value = 'Please enter a valid numeric Transaction ID';
-    return;
-  }
-  searchTransactionId.value = transId.trim();
-  await fetchInstallments();
-};
-
-const viewTransactionHistory = () => {
-  searchCardId.value = transaction.value.cardId || searchCardId.value;
-  fetchTransactions();
-  currentStep.value = 5;
+const goToInstallments = () => {
+  console.log('Navigating to Installments view');
+  searchTransactionId.value = ''; // Clear previous input
+  currentStep.value = 4;
 };
 
 const viewTransactionInstallments = async (id) => {
   if (!id) {
     errorMessage.value = 'Invalid Transaction ID';
+    console.error('Invalid Transaction ID:', id);
     return;
   }
+  console.log(`Viewing installments for transaction ID: ${id}`);
   searchTransactionId.value = id.toString();
   await fetchInstallments();
+};
+
+const viewTransactionHistory = () => {
+  console.log('Navigating to Transaction History view with cardId:', transaction.value.cardId);
+  searchCardId.value = transaction.value.cardId || recentTransactions.value[0]?.cardId?.toString() || '';
+  if (!searchCardId.value) {
+    errorMessage.value = 'No Card ID available. Please enter a Card ID.';
+    return;
+  }
+  fetchTransactions();
+  currentStep.value = 5;
 };
 
 const resetForm = () => {
@@ -1113,19 +1129,24 @@ const resetForm = () => {
   displayedInstallments.value = [];
   installments.value = [];
   errorMessage.value = '';
+  transactions.value = [];
+  searchCardId.value = transaction.value.cardId;
 };
 
 const fetchInstallments = async () => {
   if (!searchTransactionId.value || !/^\d+$/.test(searchTransactionId.value.trim())) {
     errorMessage.value = 'Please enter a valid numeric Transaction ID';
+    console.error('Invalid Transaction ID:', searchTransactionId.value);
     return;
   }
   const transactionId = parseInt(searchTransactionId.value.trim());
+  console.log(`Fetching installments for transaction ID: ${transactionId}`);
   loading.value = true;
   errorMessage.value = '';
 
   try {
     const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transactionId}`);
+    console.log(`Installments API status: ${response.status}`);
     if (!response.ok) {
       let errorMsg = 'Failed to fetch installments';
       if (response.status === 404) {
@@ -1137,12 +1158,13 @@ const fetchInstallments = async () => {
       throw new Error(errorMsg);
     }
     const data = await response.json();
+    console.log('Installments response:', data);
     installments.value = data;
     displayedInstallments.value = data;
     installmentFilter.value = 'all';
-    currentStep.value = 4;
     errorMessage.value = data.length === 0 ? 'No installments found for this Transaction ID' : '';
   } catch (error) {
+    console.error('Fetch installments error:', error);
     errorMessage.value = error.message;
     displayedInstallments.value = [];
     installments.value = [];
@@ -1154,21 +1176,36 @@ const fetchInstallments = async () => {
 const fetchTransactions = async () => {
   if (!searchCardId.value || !/^\d+$/.test(searchCardId.value.trim())) {
     errorMessage.value = 'Please enter a valid numeric Card ID';
+    console.error('Invalid Card ID:', searchCardId.value);
     return;
   }
+  const cardId = searchCardId.value.trim();
+  console.log(`Fetching transactions for card ID: ${cardId}`);
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8089/transactions/card/${searchCardId.value.trim()}`);
+    const response = await fetch(`http://localhost:8089/transactions/card/${cardId}`);
+    console.log(`Transactions API status: ${response.status}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch transactions: ${response.status}`);
+      console.error('Fetch transactions failed:', errorData);
+      let errorMsg = errorData.message || `Failed to fetch transactions: ${response.status}`;
+      if (response.status === 404) {
+        errorMsg = 'No transactions found for this Card ID';
+      }
+      throw new Error(errorMsg);
     }
     let filteredTransactions = await response.json();
+    console.log('Transactions response:', filteredTransactions);
     filteredTransactions = filteredTransactions.map(t => ({
       ...t,
-      isBNPL: t.isBNPL ?? t.bnpl ?? false
+      isBNPL: t.isBNPL ?? t.bnpl ?? false,
+      amount: parseFloat(t.amount) || 0,
+      merchantName: t.merchantName || 'N/A',
+      category: t.category || 'N/A',
+      status: t.status || 'Unknown',
+      transactionDate: t.transactionDate || new Date().toISOString()
     }));
     if (transactionFilter.value !== 'all') {
       filteredTransactions = filteredTransactions.filter(t => t.isBNPL === (transactionFilter.value === 'bnpl'));
@@ -1188,7 +1225,8 @@ const fetchTransactions = async () => {
     transactions.value = filteredTransactions.slice(start, end);
     errorMessage.value = filteredTransactions.length === 0 ? 'No transactions found for this Card ID' : '';
   } catch (error) {
-    errorMessage.value = `Error fetching transactions: ${error.message}`;
+    console.error('Fetch transactions error:', error);
+    errorMessage.value = error.message;
     transactions.value = [];
     totalTransactions.value = 0;
   } finally {
@@ -1212,11 +1250,13 @@ const filterInstallments = (filter) => {
 const filterTransactions = (filter) => {
   transactionFilter.value = filter;
   currentPage.value = 1;
+  console.log(`Applying transaction filter: ${filter}`);
   fetchTransactions();
 };
 
 const applyDateFilter = () => {
   currentPage.value = 1;
+  console.log('Applying date filter:', dateFilter.value);
   fetchTransactions();
 };
 
@@ -1225,12 +1265,14 @@ const clearDateFilter = () => {
     from: '',
     to: ''
   };
+  console.log('Clearing date filter');
   fetchTransactions();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    console.log('Navigating to previous page:', currentPage.value);
     fetchTransactions();
   }
 };
@@ -1238,18 +1280,21 @@ const prevPage = () => {
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    console.log('Navigating to next page:', currentPage.value);
     fetchTransactions();
   }
 };
 
 const goToPage = (page) => {
   currentPage.value = page;
+  console.log('Navigating to page:', page);
   fetchTransactions();
 };
 
 const payInstallment = async (installment) => {
   if (!installment?.id || !installment?.amount) {
     errorMessage.value = 'Invalid installment data';
+    console.error('Invalid installment data:', installment);
     return;
   }
   if (!confirm(`Pay installment #${installment.id} of ₹${installment.amount.toFixed(2)}?`)) return;
@@ -1258,6 +1303,7 @@ const payInstallment = async (installment) => {
   errorMessage.value = '';
 
   try {
+    console.log(`Paying installment ID: ${installment.id}, amount: ${installment.amount}`);
     const response = await fetch(
       `http://localhost:8089/bnpl/installments/${installment.id}/pay?amount=${installment.amount}`,
       { method: 'POST' }
@@ -1265,12 +1311,15 @@ const payInstallment = async (installment) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Pay installment failed:', errorData);
       throw new Error(errorData.message || `Payment failed: ${response.status}`);
     }
 
+    console.log('Installment payment successful');
     await fetchInstallments();
     alert('Payment successful!');
   } catch (error) {
+    console.error('Pay installment error:', error);
     errorMessage.value = `Payment failed: ${error.message}`;
   } finally {
     loading.value = false;
@@ -1322,6 +1371,9 @@ onMounted(() => {
   if (recentTransactions.value.length > 0) {
     transaction.value.cardId = recentTransactions.value[0].cardId.toString();
     searchCardId.value = transaction.value.cardId;
+    console.log('Initialized cardId from localStorage:', transaction.value.cardId);
+  } else {
+    console.warn('No recent transactions found in localStorage');
   }
 });
 </script>
