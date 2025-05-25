@@ -29,7 +29,7 @@
             <div class="text-xs mt-2 text-center" :class="currentStep >= index ? 'text-primary' : 'text-gray-500'">
               {{ step }}
             </div>
-            <div v-if="index < steps.length - 1" class="hidden md:block w-full h-1 bg-gray-200 mt-4">
+            <div class="hidden md:block h-1 bg-gray-200 mt-4" :class="index === steps.length - 1 ? 'w-full' : 'w-full'">
               <div :class="`h-full bg-primary transition-all duration-300`" 
                    :style="`width: ${currentStep > index ? '100%' : '0%'}`"></div>
             </div>
