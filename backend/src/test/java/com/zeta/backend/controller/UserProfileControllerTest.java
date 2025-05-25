@@ -194,25 +194,6 @@ public class UserProfileControllerTest {
         log.info("BNPL eligibility check passed");
     }
 
-    // Test case: update password for a valid user
-//    @Test
-//    public void testUpdatePassword_Valid() throws Exception {
-//        log.info("Testing update password - valid case");
-//
-//        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-//        when(userProfileRepository.existsByPassword("New@Pass123")).thenReturn(false);
-//
-//        UserProfile updateRequest = new UserProfile();
-//        updateRequest.setPassword("New@Pass123");
-//
-//        mockMvc.perform(put("/api/profile/1/password")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(updateRequest)))
-//                .andExpect(status().isOk());
-//
-//        log.info("Password update test passed");
-//    }
-
     @Test
     public void testUpdatePassword_Valid() throws Exception {
         // Arrange
