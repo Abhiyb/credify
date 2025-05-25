@@ -241,7 +241,7 @@ const updateCardLimit = async (data) => {
   updatingLimit.value = true;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/api/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
+    const response = await fetch(`${API_BASE_URL}/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
       method: 'PUT',
     });
     
