@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CardApplicationResponseDto {
+public class CardApplicationResponseDTO {
     private String cardType;
     private String status;
     private Double requestedLimit;
