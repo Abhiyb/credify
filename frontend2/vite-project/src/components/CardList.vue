@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Navbar -->
     <Navbar title="My Cards" />
-     <!-- navbar updated -->
     <!-- Main Content with padding to avoid overlap -->
     <div class="pt-32 md:pt-28">
       <div class="max-w-7xl mx-auto px-6">
@@ -208,7 +207,10 @@ const toggleCardStatus = async (card) => {
     const updatedCard = await response.json();
     const cardIndex = cards.value.findIndex(c => c.cardId === card.cardId);
     if (cardIndex !== -1) {
-      cards.value[cardIndex] = updatedCard;
+      cards.value[cardIndex] = {
+        ...cards.value[cardIndex],
+        ...updatedCard,
+      };
     }
     
     showToast(`Card has been ${newStatus.toLowerCase()} successfully!`, 'success');
@@ -239,45 +241,35 @@ const updateCardLimit = async (data) => {
   updatingLimit.value = true;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
+    const response = await fetch(`${API_BASE_URL}/api/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
       method: 'PUT',
     });
     
-    // Handle both success and error responses
     const responseText = await response.text();
     
     if (response.ok) {
-      // Success case
+      const updatedCard = JSON.parse(responseText);
       const cardIndex = cards.value.findIndex(c => c.cardId === data.cardId);
       if (cardIndex !== -1) {
-        // Update both creditLimit and calculate new availableLimit properly
-        const oldLimit = cards.value[cardIndex].creditLimit;
-        const newLimitValue = parseFloat(data.newLimit);
-        const availableLimitDifference = newLimitValue - oldLimit;
-        
-        cards.value[cardIndex].creditLimit = newLimitValue;
-        cards.value[cardIndex].availableLimit += availableLimitDifference;
+        cards.value[cardIndex] = {
+          ...cards.value[cardIndex],
+          ...updatedCard,
+        };
       }
       
       closeLimitModal();
       showToast(`Card limit updated to ₹${parseFloat(data.newLimit).toFixed(2)} successfully!`, 'success');
-      
     } else {
-      // Error case - display the error message from backend
       let errorMessage = responseText;
-      
-      // If response is JSON, try to extract error message
       try {
         const errorData = JSON.parse(responseText);
         errorMessage = errorData.message || errorData.error || responseText;
       } catch (e) {
-        // If not JSON, use the text as is
         errorMessage = responseText;
       }
       
       showToast(errorMessage, 'error');
     }
-    
   } catch (err) {
     console.error('Error updating card limit:', err);
     showToast('Failed to update card limit. Network error occurred.', 'error');
@@ -287,8 +279,7 @@ const updateCardLimit = async (data) => {
 };
 
 const getUserName = (card) => {
-  if (card.user?.fullName) return card.user.fullName.toUpperCase();
-  if (card.application?.user?.fullName) return card.application.user.fullName.toUpperCase();
+  if (card.cardHolderName) return card.cardHolderName.toUpperCase();
   return 'CARDHOLDER';
 };
 

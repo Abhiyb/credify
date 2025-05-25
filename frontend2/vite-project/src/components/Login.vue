@@ -11,12 +11,12 @@
       <div class="relative z-10 w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div class="text-center text-white">
           <!-- Logo -->
-          <div class="flex justify-center items-center gap-3 mb-8">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-              <CreditCard class="w-8 h-8 text-white" />
-            </div>
-            <h1 class="text-5xl font-bold">Credify</h1>
-          </div>
+          <a href="/" class="flex justify-center items-center gap-3 mb-8">
+  <div class="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+    <span class="text-white font-bold text-2xl">C</span>
+  </div>
+  <h1 class="text-5xl font-bold text-white">Credify</h1>
+</a>
           <!-- Hero Text -->
           <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Master Your Credit Card
@@ -50,67 +50,67 @@
 
         <!-- Login Form -->
         <div v-if="!showForgotPassword && !showResetPassword" class="w-full border-none bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-6 animate-scale-in">
-  <div class="space-y-1 text-center">
-    <h2 class="text-2xl font-bold">Sign In</h2>
-    <p class="text-gray-600">Enter your credentials to access your account</p>
-  </div>
+          <div class="space-y-1 text-center">
+            <h2 class="text-2xl font-bold">Sign In</h2>
+            <p class="text-gray-600">Enter your credentials to access your account</p>
+          </div>
 
-  <div class="space-y-4 mt-6">
-    <div>
-      <label class="block text-purple-800 mb-1">Email</label>
-      <div class="relative">
-        <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12h2a4 4 0 0 0 0-8h-6a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-4" />
-        </svg>
-        <input v-model="loginForm.email" type="email" placeholder="name@example.com"
-               class="w-full pl-10 p-2 border border-purple-100 rounded-md focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50" required />
-      </div>
-      <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
-    </div>
+          <div class="space-y-4 mt-6">
+            <div>
+              <label class="block text-purple-800 mb-1">Email</label>
+              <div class="relative">
+                <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12h2a4 4 0 0 0 0-8h-6a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-4" />
+                </svg>
+                <input v-model="loginForm.email" type="email" placeholder="name@example.com"
+                       class="w-full pl-10 p-2 border border-purple-100 rounded-md focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50" required />
+              </div>
+              <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+            </div>
 
-    <div>
-      <label class="block text-purple-800 mb-1">Password</label>
-      <div class="relative">
-        <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.1.9-2 2-2s2 .9 2 2-2 4-2 4m-6-4c0-1.1.9-2 2-2s2 .9 2 2-2 4-2 4m-2-8h4m-4 8h4" />
-        </svg>
-        <input v-model="loginForm.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
-               class="w-full pl-10 pr-10 p-2 border border-purple-100 rounded-md focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50" required />
-        <button @click="togglePassword" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-          <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-          </svg>
-        </button>
-      </div>
-      <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
-      <div class="text-right">
-        <button @click="showForgotPassword = true" class="text-sm text-purple-600 hover:text-purple-800">Forgot password?</button>
-      </div>
-    </div>
+            <div>
+              <label class="block text-purple-800 mb-1">Password</label>
+              <div class="relative">
+                <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.1.9-2 2-2s2 .9 2 2-2 4-2 4m-6-4c0-1.1.9-2 2-2s2 .9 2 2-2 4-2 4m-2-8h4m-4 8h4" />
+                </svg>
+                <input v-model="loginForm.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
+                       class="w-full pl-10 pr-10 p-2 border border-purple-100 rounded-md focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50" required />
+                <button @click="togglePassword" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
+                  <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                </button>
+              </div>
+              <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+              <div class="text-right">
+                <button @click="showForgotPassword = true" class="text-sm text-purple-600 hover:text-purple-800">Forgot password?</button>
+              </div>
+            </div>
 
-    <div class="flex items-center space-x-2">
-      <input type="checkbox" v-model="loginForm.rememberMe"
-             class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
-      <label class="text-sm font-normal text-gray-700">Remember me</label>
-    </div>
+            <div class="flex items-center space-x-2">
+              <input type="checkbox" v-model="loginForm.rememberMe"
+                     class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
+              <label class="text-sm font-normal text-gray-700">Remember me</label>
+            </div>
 
-    <button @click.prevent="handleLogin" :disabled="isLoading"
-            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all duration-300">
-      {{ isLoading ? 'Signing in...' : 'Sign in' }}
-    </button>
+            <button @click.prevent="handleLogin" :disabled="isLoading"
+                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all duration-300">
+              {{ isLoading ? 'Signing in...' : 'Sign in' }}
+            </button>
 
-    <div class="text-center mt-6">
-      <span class="text-sm text-gray-600">
-        Don't have an account?
-        <router-link to="/register" class="text-purple-600 hover:text-purple-800 font-medium">Create an account</router-link>
-      </span>
-    </div>
-  </div>
-</div>
+            <div class="text-center mt-6">
+              <span class="text-sm text-gray-600">
+                Don't have an account?
+                <router-link to="/register" class="text-purple-600 hover:text-purple-800 font-medium">Create an account</router-link>
+              </span>
+            </div>
+          </div>
+        </div>
 
         <!-- Forgot Password Form (Email Input) -->
         <div v-if="showForgotPassword && !showResetPassword" class="w-full border-none bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-6 animate-scale-in">
@@ -230,6 +230,7 @@ const showResetPassword = ref(false);
 const showSuccessMessage = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+const showPassword = ref(false);
 const userId = ref(null);
 
 const loginForm = reactive({
@@ -253,10 +254,11 @@ const errors = reactive({
   newPassword: '',
   confirmPassword: '',
 });
-const showPassword = ref(false);
+
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
+
 const validateLoginForm = () => {
   errors.email = '';
   errors.password = '';
@@ -312,6 +314,18 @@ const validateResetPasswordForm = () => {
   return isValid;
 };
 
+const fetchUserFullName = async (userId) => {
+  try {
+    const response = await axios.get('http://localhost:8089/api/profile');
+    const users = response.data;
+    const user = users.find(user => user.userId === parseInt(userId));
+    return user ? user.fullName : null;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+};
+
 const handleLogin = async () => {
   if (!validateLoginForm()) return;
   isLoading.value = true;
@@ -323,9 +337,20 @@ const handleLogin = async () => {
     });
 
     const storage = loginForm.rememberMe ? localStorage : sessionStorage;
-    storage.setItem('userId', response.data.userId);
-    storage.setItem('userName', response.data.fullName || loginForm.email);
-    storage.setItem('fullName', response.data.fullName || loginForm.email);
+    const userId = response.data.userId;
+    let fullName = response.data.fullName;
+
+    // If fullName is not in the login response, fetch it using userId
+    if (!fullName) {
+      fullName = await fetchUserFullName(userId);
+      if (!fullName) {
+        throw new Error('Unable to retrieve user name');
+      }
+    }
+
+    // Store in storage
+    storage.setItem('userId', userId);
+    storage.setItem('fullName', fullName);
 
     router.push('/dashboard');
   } catch (error) {
@@ -334,7 +359,7 @@ const handleLogin = async () => {
       errors.email = message.includes('User') ? message : '';
       errors.password = message.includes('password') ? message : '';
     } else {
-      errors.password = 'Failed to connect to the server';
+      errors.password = error.message || 'Failed to connect to the server';
     }
   } finally {
     isLoading.value = false;

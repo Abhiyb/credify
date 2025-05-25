@@ -1,11 +1,11 @@
 package com.zeta.backend.service;
 
-import com.zeta.backend.model.Card;
+import com.zeta.backend.dto.CardDTO;
 
 import java.util.List;
 
 public interface ICardService {
-    List<Card> getCardDetailsByUserId(Long userId);
-
-    Card putCardByUserId(Long cardId, String status);
+    List<CardDTO> getCardDetailsByUserId(Long userId);
+    CardDTO putCardByUserId(Long cardId, String status);
+    CardDTO updateCardLimit(Long cardId, Double newLimit);
 }
