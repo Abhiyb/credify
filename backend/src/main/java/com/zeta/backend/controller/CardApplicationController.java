@@ -1,6 +1,6 @@
 package com.zeta.backend.controller;
 
-import com.zeta.backend.dto.CardApplicationResponseDto; // 🔄 MODIFIED
+import com.zeta.backend.dto.CardApplicationResponseDTO; // 🔄 MODIFIED
 import com.zeta.backend.model.CardApplication;
 import com.zeta.backend.service.ICardApplicationService;
 import lombok.RequiredArgsConstructor;
@@ -35,13 +35,13 @@ public class CardApplicationController {
      * Endpoint to fetch all card applications for a user
      */
     @GetMapping("/applications/{userId}")
-    public ResponseEntity<List<CardApplicationResponseDto>> getApplicationstatus(@PathVariable Long userId) {
+    public ResponseEntity<List<CardApplicationResponseDTO>> getApplicationstatus(@PathVariable Long userId) {
         log.info("Fetching card application status for user ID: {}", userId);
         List<CardApplication> applications = cardApplicationService.getApplicationsByUserId(userId);
 
         // 🔄 Use dto
-        List<CardApplicationResponseDto> response = applications.stream()
-                .map(app -> CardApplicationResponseDto.builder()
+        List<CardApplicationResponseDTO> response = applications.stream()
+                .map(app -> CardApplicationResponseDTO.builder()
                         .cardType(app.getCardType())
                         .status(app.getStatus())
                         .requestedLimit(app.getRequestedLimit())

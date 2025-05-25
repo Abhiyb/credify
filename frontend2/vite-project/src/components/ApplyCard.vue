@@ -167,7 +167,11 @@
       }, 4000)
     } catch (error) {
       console.error('Error submitting application:', error)
-      errorMessage.value = 'Failed to submit application. Please try again later.'
+      if (error.response && error.response.data) {
+    errorMessage.value = error.response.data // this displays custom message like "Application already exists..."
+  } else {
+    errorMessage.value = '❌ Failed to submit application. Please try again later.'
+  }
     }
   }
   </script>
