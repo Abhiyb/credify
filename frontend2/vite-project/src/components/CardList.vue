@@ -248,13 +248,14 @@ const updateCardLimit = async (data) => {
     const responseText = await response.text();
     
     if (response.ok) {
-      const updatedCard = JSON.parse(responseText);
       const cardIndex = cards.value.findIndex(c => c.cardId === data.cardId);
       if (cardIndex !== -1) {
-        cards.value[cardIndex] = {
-          ...cards.value[cardIndex],
-          ...updatedCard,
-        };
+        const oldLimit = cards.value[cardIndex].creditLimit;
+        const newLimitValue = parseFloat(data.newLimit);
+        const availableLimitDifference = newLimitValue - oldLimit;
+
+        cards.value[cardIndex].creditLimit = newLimitValue;
+        cards.value[cardIndex].availableLimit += availableLimitDifference;
       }
       
       closeLimitModal();
