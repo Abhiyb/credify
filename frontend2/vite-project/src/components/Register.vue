@@ -4,20 +4,17 @@
       <!-- Logo -->
       <div class="flex justify-center mb-8">
         <a href="/" class="inline-flex items-center gap-2">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <line x1="2" x2="22" y1="10" y2="10" />
-            </svg>
-          </div>
-          <span class="font-bold text-3xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">CardMaster</span>
+          <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+          <span class="text-white font-bold text-lg">C</span>
+        </div>
+          <span class="font-bold text-3xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Credify</span>
         </a>
       </div>
 
       <!-- Two-Column Layout -->
-      <div class="flex flex-col lg:flex-row gap-8 items-start">
+      <div class="flex gap-8">
         <!-- Left Column - Info -->
-        <div class="w-full lg:w-1/3 lg:sticky lg:top-10">
+        <div class="w-1/3">
           <div class="bg-white p-8 rounded-2xl shadow-sm">
             <h2 class="text-2xl font-bold mb-4 text-gray-900">Join CardMaster Today</h2>
             <p class="text-gray-600 mb-6">Create your account and unlock a world of card management possibilities. Get access to:</p>
@@ -70,7 +67,7 @@
         </div>
 
         <!-- Right Column - Form -->
-        <div class="w-full lg:w-2/3">
+        <div class="w-2/3">
           <div class="bg-white shadow-sm rounded-2xl p-6">
             <div class="text-center">
               <h2 class="text-2xl font-bold text-gray-900">Create your account</h2>
@@ -81,7 +78,7 @@
               <!-- Personal Information Section -->
               <div class="text-lg font-medium text-gray-900 mb-2">Personal Information</div>
 
-              <div class="grid md:grid-cols-2 gap-6">
+              <div class="grid grid-cols-2 gap-6">
                 <!-- Full Name -->
                 <div>
                   <label class="block mb-1 text-gray-900">Full Name</label>
@@ -170,14 +167,14 @@
                   />
                 </div>
                 <p v-if="errors.annualIncome" class="text-red-500 text-sm mt-1">{{ errors.annualIncome }}</p>
-                <p class="text-sm text-gray-500 mt-1">Annual income of ₹3,60,000 or more qualifies you for Buy Now, Pay Later services.</p>
+                <p class="text-sm text-gray-500 mt-1">Annual income of ₹3,60,000 or more qualifies for Buy Now, Pay Later services.</p>
               </div>
 
               <!-- Separator and Security Section -->
               <hr class="my-4 border-gray-200" />
               <div class="text-lg font-medium text-gray-900 mb-2">Security</div>
 
-              <div class="grid md:grid-cols-2 gap-6">
+              <div class="grid grid-cols-2 gap-6">
                 <!-- Password -->
                 <div>
                   <label class="block mb-1 text-gray-900">Password</label>
@@ -288,14 +285,16 @@
           </div>
         </div>
       </div>
-
-      
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+// Router
+const router = useRouter();
 
 // Reactive state for loading
 const isLoading = ref(false);
@@ -374,7 +373,7 @@ const validateForm = () => {
     errors.value.phone = 'Phone number is required';
     isValid = false;
   } else if (!phoneRegex.test(registerForm.value.phone)) {
-    errors.value.phone = 'Phone number must be 10 digits';
+    errors.value.phone = 'Phone number must be exactly 10 digits';
     isValid = false;
   }
 
@@ -397,7 +396,7 @@ const validateForm = () => {
     errors.value.password = 'Password is required';
     isValid = false;
   } else if (!passwordRegex.test(registerForm.value.password)) {
-    errors.value.password = 'Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character';
+    errors.value.password = 'Password must be at least 8 characters and include one uppercase letter, one lowercase letter, one digit, and one special character';
     isValid = false;
   }
 
@@ -445,20 +444,34 @@ const handleRegister = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Registration failed');
+      // Get the response body as text first
+      const responseText = await response.text();
+      let errorMessage = 'Registration failed';
+
+      // Try to parse as JSON
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message || errorData.error || responseText;
+      } catch (e) {
+        // If parsing fails, use the raw text as the error message
+        errorMessage = responseText || 'An error occurred during registration';
+      }
+
+      throw new Error(errorMessage);
     }
 
-    // Assuming the backend returns the created user data
+    // Parse successful response
     const user = await response.json();
     
-    // Optionally store user data in localStorage for client-side use
+    // Store user data in localStorage
     localStorage.setItem('currentUser', JSON.stringify(user));
+    localStorage.setItem('userId', user.userId.toString());
+    localStorage.setItem('fullName', user.fullName);
 
     // Reset loading state and redirect
     isLoading.value = false;
     alert('Registration successful!');
-    window.location.href = '/dashboard';
+    router.push('/dashboard');
   } catch (error) {
     isLoading.value = false;
     alert(`Registration failed: ${error.message}`);
@@ -467,5 +480,5 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-/* No longer needed since we're using Tailwind classes */
+/* Tailwind handles all styling */
 </style>

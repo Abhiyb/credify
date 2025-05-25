@@ -329,7 +329,7 @@ export default {
 
         if (response.ok) {
           this.profile = await response.json();
-          console.log('Profile loaded:', this.profile);
+        
         } else if (response.status === 404) {
           this.showToastMessage('Profile not found', 'error');
         } else {

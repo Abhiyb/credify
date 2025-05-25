@@ -151,6 +151,7 @@ const userName = ref('');
 const getUserName = () => {
   try {
     const fullName = localStorage.getItem('fullName');
+    console.log('Full Name from localStorage:', localStorage);
     userName.value = fullName || 'Guest';
   } catch (err) {
     console.error('Error reading fullName from localStorage:', err);
