@@ -1,5 +1,6 @@
 package com.zeta.backend.service;
 
+import com.zeta.backend.exception.DuplicateCardApplicationException;
 import com.zeta.backend.exception.UserNotFoundException;
 import com.zeta.backend.model.*;
 import com.zeta.backend.repository.*;
@@ -38,6 +39,15 @@ public class CardApplicationService implements ICardApplicationService {
                     return new RuntimeException("User not found with ID " + userId);
                 });
 
+        // check for duplicate application
+        boolean alreadyExists = applicationRepository.existsByUserUserIdAndCardTypeAndRequestedLimit(
+                user.getUserId(), application.getCardType(), application.getRequestedLimit());
+
+        if (alreadyExists) {
+            log.warn("Duplicate application attempt for user ID: {} with card type: {} and limit: {}",
+                    user.getUserId(), application.getCardType(), application.getRequestedLimit());
+            throw new DuplicateCardApplicationException("Application already exists for the same card type and limit.");
+        }
         // Set current date and determine application status based on utility logic
         application.setApplicationDate(LocalDate.now());
         String status = CardApprovalUtil.determineApplicationStatus(user, application.getCardType(), application.getRequestedLimit());

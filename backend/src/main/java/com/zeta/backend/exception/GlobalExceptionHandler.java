@@ -79,4 +79,10 @@ public class GlobalExceptionHandler {
         body.put("message", message);
         return new ResponseEntity<>(body, status);
     }
+
+    @ExceptionHandler(DuplicateCardApplicationException.class)
+    public ResponseEntity<String> handleDuplicateCardApplication(DuplicateCardApplicationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
 }
