@@ -1,11 +1,12 @@
 package com.zeta.backend.controller;
 
+import com.zeta.backend.dto.TransactionCreateDTO;
+import com.zeta.backend.dto.TransactionResponseDTO;
+import com.zeta.backend.dto.TransactionUpdateDTO;
 import com.zeta.backend.enums.InstallmentPlan;
-import com.zeta.backend.exception.ResourceNotFoundException;
-import com.zeta.backend.model.Card;
-import com.zeta.backend.model.Transaction;
+import com.zeta.backend.exception.BadRequestException;
 import com.zeta.backend.service.ITransactionService;
-import com.zeta.backend.repository.CardRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,97 +14,119 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
+/**
+ * REST controller for managing transaction-related API endpoints.
+ * Handles regular and BNPL transaction creation, retrieval, updates, and deletion.
+ * Uses DTOs for secure data transfer and logging for monitoring.
+ */
 @RestController
 @RequestMapping("/transactions")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class TransactionController {
 
     private final ITransactionService transactionService;
-    private final CardRepository cardRepository;
 
     /**
-     * Create or simulate a transaction (regular or BNPL)
+     * Creates a regular (non-BNPL) transaction.
+     * @param transaction dto containing transaction details.
+     * @return ResponseEntity with TransactionResponseDTO.
+     * @throws BadRequestException if dto validation fails.
      */
     @PostMapping
-    public ResponseEntity<Transaction> simulateTransaction(
-            @RequestBody Transaction transaction,
-            @RequestParam(value = "plan", defaultValue = "THREE") InstallmentPlan plan) {
-
-        log.info("Simulating transaction for card ID: {}", transaction.getCardId());
-
-        // Fetch and set card if only cardId is provided
-        if (transaction.getCard() == null && transaction.getCardId() != null) {
-            Card card = cardRepository.findById(transaction.getCardId())
-                    .orElseThrow(() -> {
-                        log.error("Card with ID {} not found", transaction.getCardId());
-                        return new ResourceNotFoundException("Card not found");
-                    });
-            transaction.setCard(card);
-        }
-
-        Transaction saved;
-        if (Boolean.TRUE.equals(transaction.getIsBNPL())) {
-            log.info("Processing as BNPL transaction with {}-month plan", plan.name());
-            saved = transactionService.simulateBNPLTransaction(transaction, plan);
-        } else {
-            log.info("Processing as regular transaction");
-            saved = transactionService.simulateRegularTransaction(transaction);
-        }
-
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<TransactionResponseDTO> createRegularTransaction(
+            @Valid @RequestBody TransactionCreateDTO transaction) {
+        log.info("Received request to create regular transaction for card ID: {}", transaction.getCardId());
+        TransactionResponseDTO response = transactionService.simulateRegularTransaction(transaction);
+        log.info("Created regular transaction with ID: {}", response.getId());
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Get all transactions
+     * Creates a BNPL transaction with the specified installment plan.
+     * @param transaction dto containing transaction details.
+     * @param plan Installment plan (THREE, SIX, or NINE months).
+     * @return ResponseEntity with TransactionResponseDTO.
+     * @throws BadRequestException if dto validation fails or plan is invalid.
      */
-    @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        log.info("Fetching all transactions");
-        List<Transaction> list = transactionService.getAllTransactions();
-        return ResponseEntity.ok(list);
+    @PostMapping("/bnpl")
+    public ResponseEntity<TransactionResponseDTO> createBNPLTransaction(
+            @Valid @RequestBody TransactionCreateDTO transaction,
+            @RequestParam InstallmentPlan plan) {
+        log.info("Received request to create BNPL transaction for card ID: {} with plan: {}",
+                transaction.getCardId(), plan);
+        TransactionResponseDTO response = transactionService.simulateBNPLTransaction(transaction, plan);
+        log.info("Created BNPL transaction with ID: {}", response.getId());
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Get a transaction by its ID
-     */
-    @GetMapping("/id/{id}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
-        log.info("Fetching transaction with ID {}", id);
-        Transaction txn = transactionService.getTransactionById(id);
-        return ResponseEntity.ok(txn);
-    }
-
-    /**
-     * Get all transactions for a specific card ID
+     * Retrieves transaction history for a specific card.
+     * @param cardId ID of the card to fetch transactions for.
+     * @return ResponseEntity with List of TransactionResponseDTOs.
      */
     @GetMapping("/card/{cardId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByCardId(@PathVariable Long cardId) {
-        log.info("Fetching transactions for card ID {}", cardId);
-        List<Transaction> transactions = transactionService.getTransactionHistoryByCardId(cardId);
+    public ResponseEntity<List<TransactionResponseDTO>> getTransactionHistory(
+            @PathVariable Long cardId) {
+        log.info("Received request to fetch transaction history for card ID: {}", cardId);
+        List<TransactionResponseDTO> transactions = transactionService.getTransactionHistoryByCardId(cardId);
+        log.debug("Returning {} transactions for card ID: {}", transactions.size(), cardId);
         return ResponseEntity.ok(transactions);
     }
 
     /**
-     * Update an existing transaction
+     * Retrieves all transactions in the system.
+     * @return ResponseEntity with List of TransactionResponseDTOs.
      */
-    @PutMapping("/id/{id}")
-    public ResponseEntity<Transaction> updateTransaction(
-            @PathVariable Long id,
-            @RequestBody Transaction transaction) {
-        log.info("Updating transaction ID {}", id);
-        Transaction updated = transactionService.updateTransaction(id, transaction);
-        return ResponseEntity.ok(updated);
+    @GetMapping
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions() {
+        log.info("Received request to fetch all transactions");
+        List<TransactionResponseDTO> transactions = transactionService.getAllTransactions();
+        log.debug("Returning {} transactions", transactions.size());
+        return ResponseEntity.ok(transactions);
     }
 
     /**
-     * Delete a transaction by ID
+     * Retrieves a transaction by its ID.
+     * @param id ID of the transaction to fetch.
+     * @return ResponseEntity with TransactionResponseDTO.
      */
-    @DeleteMapping("/id/{id}")
+    @GetMapping("/{id}")
+    public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable Long id) {
+        log.info("Received request to fetch transaction with ID: {}", id);
+        TransactionResponseDTO transaction = transactionService.getTransactionById(id);
+        log.debug("Returning transaction with ID: {}", id);
+        return ResponseEntity.ok(transaction);
+    }
+
+    /**
+     * Updates an existing transaction.
+     * @param id ID of the transaction to update.
+     * @param transaction dto containing updated transaction details.
+     * @return ResponseEntity with TransactionResponseDTO.
+     * @throws BadRequestException if dto validation fails.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<TransactionResponseDTO> updateTransaction(
+            @PathVariable Long id,
+            @Valid @RequestBody TransactionUpdateDTO transaction) {
+        log.info("Received request to update transaction with ID: {}", id);
+        TransactionResponseDTO response = transactionService.updateTransaction(id, transaction);
+        log.info("Updated transaction with ID: {}", id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Deletes a transaction by its ID.
+     * @param id ID of the transaction to delete.
+     * @return ResponseEntity with no content.
+     */
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        log.info("Deleting transaction with ID {}", id);
+        log.info("Received request to delete transaction with ID: {}", id);
         transactionService.deleteTransaction(id);
+        log.info("Deleted transaction with ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

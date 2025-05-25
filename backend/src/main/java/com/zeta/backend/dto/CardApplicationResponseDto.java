@@ -1,4 +1,4 @@
-package com.zeta.backend.DTO;
+package com.zeta.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

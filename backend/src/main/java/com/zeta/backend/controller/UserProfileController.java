@@ -2,7 +2,7 @@ package com.zeta.backend.controller;
 
 import com.zeta.backend.dto.UserProfileCreateDTO;
 import com.zeta.backend.dto.UserProfileUpdateDTO;
-import com.zeta.backend.DTO.UserProfileResponseDTO;
+import com.zeta.backend.dto.UserProfileResponseDTO;
 import com.zeta.backend.model.UserProfile;
 import com.zeta.backend.repository.UserProfileRepository;
 import jakarta.validation.Valid;
@@ -184,7 +184,7 @@ public class UserProfileController {
                 profile.setAnnualIncome(updatedProfile.getAnnualIncome());
             }
             // Password is updated only via /password endpoint
-            // isEligibleForBNPL is computed server-side via @PreUpdate, ignoring DTO value
+            // isEligibleForBNPL is computed server-side via @PreUpdate, ignoring dto value
 
             // Save the updated profile
             UserProfile saved = userProfileRepository.save(profile);

@@ -1,7 +1,11 @@
 package com.zeta.backend.controller;
 
-import com.zeta.backend.model.BNPLInstallment;
+import com.zeta.backend.dto.BNPLInstallmentCreateDTO;
+import com.zeta.backend.dto.BNPLInstallmentResponseDTO;
+import com.zeta.backend.dto.BNPLInstallmentUpdateDTO;
+import com.zeta.backend.exception.BadRequestException;
 import com.zeta.backend.service.IBNPLPaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -9,100 +13,146 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
+/**
+ * REST controller for managing BNPL installment-related API endpoints.
+ * Handles payment processing, retrieval, creation, updates, and deletion of installments.
+ * Uses DTOs for secure data transfer and logging for monitoring.
+ */
 @RestController
 @RequestMapping("/bnpl/installments")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class BNPLPaymentController {
 
     private final IBNPLPaymentService bnplPaymentService;
 
     /**
-     * Get all installments linked to a transaction
+     * Processes a payment for an installment.
+     * @param id ID of the installment to pay.
+     * @param amount Payment amount.
+     * @return ResponseEntity with BNPLInstallmentResponseDTO.
+     * @throws BadRequestException if amount is invalid.
      */
-    @GetMapping("/transaction/{transactionId}")
-    public ResponseEntity<List<BNPLInstallment>> getAllInstallmentsByTransactionId(@PathVariable Long transactionId) {
-        log.info("Fetching all installments for transaction ID {}", transactionId);
-        List<BNPLInstallment> installments = bnplPaymentService.getAllInstallmentsByTransactionId(transactionId);
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<BNPLInstallmentResponseDTO> payInstallment(
+            @PathVariable Long id,
+            @RequestParam Double amount) {
+        log.info("Received request to pay installment ID: {} with amount: {}", id, amount);
+        BNPLInstallmentResponseDTO response = bnplPaymentService.payInstallment(id, amount);
+        log.info("Processed payment for installment ID: {}", id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Retrieves pending (unpaid) installments for a transaction.
+     * @param transactionId ID of the transaction to fetch pending installments for.
+     * @return ResponseEntity with List of BNPLInstallmentResponseDTOs.
+     */
+    @GetMapping("/transaction/{transactionId}/pending")
+    public ResponseEntity<List<BNPLInstallmentResponseDTO>> getPendingInstallments(
+            @PathVariable Long transactionId) {
+        log.info("Received request to fetch pending installments for transaction ID: {}", transactionId);
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getPendingInstallmentsByTransactionId(transactionId);
+        log.debug("Returning {} pending installments for transaction ID: {}", installments.size(), transactionId);
         return ResponseEntity.ok(installments);
     }
 
     /**
-     * Pay a specific installment by ID
+     * Retrieves overdue installments for a card.
+     * @param cardId ID of the card to fetch overdue installments for.
+     * @return ResponseEntity with List of BNPLInstallmentResponseDTOs.
      */
-    @PostMapping("/{installmentId}/pay")
-    public ResponseEntity<String> payInstallment(
-            @PathVariable Long installmentId,
-            @RequestParam Double amount) {
-        log.info("Paying installment ID {} with amount {}", installmentId, amount);
-        bnplPaymentService.payInstallment(installmentId, amount);
-        return ResponseEntity.ok("Installment paid successfully");
+    @GetMapping("/card/{cardId}/overdue")
+    public ResponseEntity<List<BNPLInstallmentResponseDTO>> getOverdueInstallments(
+            @PathVariable Long cardId) {
+        log.info("Received request to fetch overdue installments for card ID: {}", cardId);
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getOverdueInstallmentsByCardId(cardId);
+        log.debug("Returning {} overdue installments for card ID: {}", installments.size(), cardId);
+        return ResponseEntity.ok(installments);
     }
 
     /**
-     * Get all pending installments for a given transaction
-     */
-    @GetMapping("/pending/{transactionId}")
-    public ResponseEntity<List<BNPLInstallment>> getPendingInstallments(@PathVariable Long transactionId) {
-        log.info("Fetching pending installments for transaction ID {}", transactionId);
-        List<BNPLInstallment> pending = bnplPaymentService.getPendingInstallmentsByTransactionId(transactionId);
-        return ResponseEntity.ok(pending);
-    }
-
-    /**
-     * Get all overdue installments for a given card
-     */
-    @GetMapping("/overdue/{cardId}")
-    public ResponseEntity<List<BNPLInstallment>> getOverdueInstallments(@PathVariable Long cardId) {
-        log.info("Fetching overdue installments for card ID {}", cardId);
-        List<BNPLInstallment> overdue = bnplPaymentService.getOverdueInstallmentsByCardId(cardId);
-        return ResponseEntity.ok(overdue);
-    }
-
-    /**
-     * Get all BNPL installments
+     * Retrieves all installments in the system.
+     * @return ResponseEntity with List of BNPLInstallmentResponseDTOs.
      */
     @GetMapping
-    public ResponseEntity<List<BNPLInstallment>> getAllInstallments() {
-        log.info("Fetching all BNPL installments");
-        return ResponseEntity.ok(bnplPaymentService.getAllInstallments());
+    public ResponseEntity<List<BNPLInstallmentResponseDTO>> getAllInstallments() {
+        log.info("Received request to fetch all installments");
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getAllInstallments();
+        log.debug("Returning {} installments", installments.size());
+        return ResponseEntity.ok(installments);
     }
 
     /**
-     * Get installment details by ID
+     * Retrieves an installment by its ID.
+     * @param id ID of the installment to fetch.
+     * @return ResponseEntity with BNPLInstallmentResponseDTO.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<BNPLInstallment> getInstallmentById(@PathVariable Long id) {
-        log.info("Fetching installment by ID {}", id);
-        return ResponseEntity.ok(bnplPaymentService.getInstallmentById(id));
+    public ResponseEntity<BNPLInstallmentResponseDTO> getInstallmentById(@PathVariable Long id) {
+        log.info("Received request to fetch installment with ID: {}", id);
+        BNPLInstallmentResponseDTO installment = bnplPaymentService.getInstallmentById(id);
+        log.debug("Returning installment with ID: {}", id);
+        return ResponseEntity.ok(installment);
     }
 
     /**
-     * Create a new BNPL installment
+     * Creates a new BNPL installment.
+     * @param installment dto containing installment details.
+     * @return ResponseEntity with BNPLInstallmentResponseDTO.
+     * @throws BadRequestException if dto validation fails.
      */
     @PostMapping
-    public ResponseEntity<BNPLInstallment> createInstallment(@RequestBody BNPLInstallment installment) {
-        log.info("Creating new BNPL installment");
-        return ResponseEntity.ok(bnplPaymentService.createInstallment(installment));
+    public ResponseEntity<BNPLInstallmentResponseDTO> createInstallment(
+            @Valid @RequestBody BNPLInstallmentCreateDTO installment) {
+        log.info("Received request to create installment for transaction ID: {}", installment.getTransactionId());
+        BNPLInstallmentResponseDTO response = bnplPaymentService.createInstallment(installment);
+        log.info("Created installment with ID: {}", response.getId());
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Update an existing BNPL installment
+     * Updates an existing BNPL installment.
+     * @param id ID of the installment to update.
+     * @param installment dto containing updated installment details.
+     * @return ResponseEntity with BNPLInstallmentResponseDTO.
+     * @throws BadRequestException if dto validation fails.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<BNPLInstallment> updateInstallment(@PathVariable Long id, @RequestBody BNPLInstallment updated) {
-        log.info("Updating installment ID {}", id);
-        return ResponseEntity.ok(bnplPaymentService.updateInstallment(id, updated));
+    public ResponseEntity<BNPLInstallmentResponseDTO> updateInstallment(
+            @PathVariable Long id,
+            @Valid @RequestBody BNPLInstallmentUpdateDTO installment) {
+        log.info("Received request to update installment with ID: {}", id);
+        BNPLInstallmentResponseDTO response = bnplPaymentService.updateInstallment(id, installment);
+        log.info("Updated installment with ID: {}", id);
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Delete a BNPL installment by ID
+     * Deletes an existing BNPL installment.
+     * @param id ID of the installment to delete.
+     * @return ResponseEntity with no content.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteInstallment(@PathVariable Long id) {
-        log.info("Deleting installment ID {}", id);
+    public ResponseEntity<Void> deleteInstallment(@PathVariable Long id) {
+        log.info("Received request to delete installment with ID: {}", id);
         bnplPaymentService.deleteInstallment(id);
-        return ResponseEntity.ok("Installment deleted successfully");
+        log.info("Deleted installment with ID: {}", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Retrieves all installments for a transaction.
+     * @param transactionId ID of the transaction to fetch installments for.
+     * @return ResponseEntity with List of BNPLInstallmentResponseDTOs.
+     */
+    @GetMapping("/transaction/{transactionId}")
+    public ResponseEntity<List<BNPLInstallmentResponseDTO>> getAllInstallmentsByTransactionId(
+            @PathVariable Long transactionId) {
+        log.info("Received request to fetch all installments for transaction ID: {}", transactionId);
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getAllInstallmentsByTransactionId(transactionId);
+        log.debug("Returning {} installments for transaction ID: {}", installments.size(), transactionId);
+        return ResponseEntity.ok(installments);
     }
 }
