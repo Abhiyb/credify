@@ -38,4 +38,3 @@ public class UserProfileUpdateDTO {
         interface Update {}
     }
 }
-

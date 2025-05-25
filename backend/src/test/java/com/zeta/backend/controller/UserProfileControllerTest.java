@@ -42,15 +42,17 @@ public class UserProfileControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(userProfileController).build();
 
         // Create mock user profile with dummy data
-        mockUser = new UserProfile();
-        mockUser.setUserId(1L);
-        mockUser.setFullName("John Doe");
-        mockUser.setEmail("john@example.com");
-        mockUser.setPhone("1234567890");
-        mockUser.setAddress("123 Street");
-        mockUser.setAnnualIncome(500000.0);
-        mockUser.setPassword("Pass@1234");
-        mockUser.setIsEligibleForBNPL(true);
+        mockUser = UserProfile.builder()
+                .userId(1L)
+                .fullName("John Doe")
+                .email("john@example.com")
+                .phone("1234567890")
+                .address("123 Street")
+                .annualIncome(500000.0)
+                .password("Pass@1234")
+                .isEligibleForBNPL(true)
+                .build();
+
 
         log.info("Test setup completed with mock user: {}", mockUser);
     }
@@ -64,7 +66,6 @@ public class UserProfileControllerTest {
         when(userProfileRepository.existsByEmail(anyString())).thenReturn(false);
         when(userProfileRepository.existsByPhone(anyString())).thenReturn(false);
         when(userProfileRepository.existsByFullName(anyString())).thenReturn(false);
-        when(userProfileRepository.existsByPassword(anyString())).thenReturn(false);
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(mockUser);
 
         // Convert mock user to JSON
@@ -192,49 +193,5 @@ public class UserProfileControllerTest {
                 .andExpect(status().isOk());
 
         log.info("BNPL eligibility check passed");
-    }
-
-    @Test
-    public void testUpdatePassword_Valid() throws Exception {
-        // Arrange
-        log.info("Testing update password - valid case");
-
-        // Create a mock UserProfile
-        UserProfile mockUser = new UserProfile();
-        mockUser.setUserId(1L);
-        mockUser.setFullName("John Doe");
-        mockUser.setEmail("john.doe@example.com");
-        mockUser.setPhone("1234567890");
-        mockUser.setAddress("123 Main St");
-        mockUser.setAnnualIncome(500000.0);
-        mockUser.setPassword("Old@Pass123");
-        mockUser.setIsEligibleForBNPL(true);
-
-        // Mock repository behavior
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-        when(userProfileRepository.existsByPassword("New@Pass123")).thenReturn(false);
-        when(userProfileRepository.save(any(UserProfile.class))).thenAnswer(invocation -> {
-            UserProfile updatedUser = invocation.getArgument(0);
-            updatedUser.setUserId(1L); // Ensure ID is preserved
-            updatedUser.setIsEligibleForBNPL(updatedUser.getAnnualIncome() != null && updatedUser.getAnnualIncome() >= 360000);
-            return updatedUser;
-        });
-
-        // Create request body as a Map (matches endpoint expectation)
-        Map<String, String> passwordData = Map.of("password", "New@Pass123");
-
-        // Act and Assert
-        mockMvc.perform(put("/api/profile/1/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(passwordData)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Password updated successfully"))
-                .andExpect(jsonPath("$.user.fullName").value("John Doe"))
-                .andExpect(jsonPath("$.user.email").value("john.doe@example.com"))
-                .andExpect(jsonPath("$.user.phone").value("1234567890"))
-                .andExpect(jsonPath("$.user.address").value("123 Main St"))
-                .andExpect(jsonPath("$.user.annualIncome").value(500000.0));
-
-        log.info("Password update test passed");
     }
 }

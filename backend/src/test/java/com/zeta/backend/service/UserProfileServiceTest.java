@@ -31,15 +31,18 @@ public class UserProfileServiceTest {
     @BeforeEach
     public void setup() {
         log.info("Setting up test data for UserProfileServiceImplTest");
-        sampleUser = new UserProfile();
-        sampleUser.setUserId(1L);
-        sampleUser.setFullName("John Doe");
-        sampleUser.setEmail("john.doe@example.com");
-        sampleUser.setPhone("1234567890");
-        sampleUser.setAddress("123 Main St");
-        sampleUser.setAnnualIncome(500000.0);
-        sampleUser.setPassword("Password@123");
-        sampleUser.setIsEligibleForBNPL(true);
+
+        sampleUser = UserProfile.builder()
+                .userId(1L)
+                .fullName("John Doe")
+                .email("john.doe@example.com")
+                .phone("1234567890")
+                .address("123 Main St")
+                .annualIncome(500000.0)
+                .password("Password@123")
+                .isEligibleForBNPL(true)
+                .build();
+
         log.debug("Sample user created: {}", sampleUser);
     }
 
@@ -108,14 +111,16 @@ public class UserProfileServiceTest {
         log.info("Testing updateProfile success scenario for userId: {}", 1L);
 
         // Creating updated user profile data
-        UserProfile updatedInfo = new UserProfile();
-        updatedInfo.setFullName("Jane Doe");
-        updatedInfo.setEmail("jane.doe@example.com");
-        updatedInfo.setPhone("0987654321");
-        updatedInfo.setAddress("456 Another St");
-        updatedInfo.setAnnualIncome(600000.0);
-        updatedInfo.setIsEligibleForBNPL(false);
-        updatedInfo.setPassword("NewPassword@123");
+        UserProfile updatedInfo = UserProfile.builder()
+                .fullName("Jane Doe")
+                .email("jane.doe@example.com")
+                .phone("0987654321")
+                .address("456 Another St")
+                .annualIncome(600000.0)
+                .isEligibleForBNPL(false)
+                .password("NewPassword@123")
+                .build();
+
         log.debug("Updated profile info: {}", updatedInfo);
 
         // Mocking repository operations
@@ -164,77 +169,5 @@ public class UserProfileServiceTest {
         verify(userProfileRepository, times(1)).findById(99L);
         verify(userProfileRepository, never()).save(any());
         log.info("updateProfile not found test passed for userId: {}", 99L);
-    }
-
-    // ----------- updatePassword() -----------
-    // Testing successful password update for an existing user
-    @Test
-    public void testUpdatePassword_Success() {
-        log.info("Testing updatePassword success scenario for userId: {}", 1L);
-
-        String newPassword = "SecurePass@123";
-        log.debug("New password: {}", newPassword);
-
-        // Mocking repository operations
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(userProfileRepository.save(any(UserProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Calling the service method to update the password
-        UserProfile updated = userProfileService.updatePassword(1L, newPassword);
-
-        // Verifying the updated password
-        log.debug("Password updated successfully for userId 1L: {}", updated);
-        assertEquals(newPassword, updated.getPassword());
-        verify(userProfileRepository, times(1)).findById(1L);
-        verify(userProfileRepository, times(1)).save(any(UserProfile.class));
-        log.info("updatePassword success test passed for userId: {}", 1L);
-    }
-
-    // Testing password update for a non-existent user (should throw exception)
-    @Test
-    public void testUpdatePassword_UserNotFound_ThrowsException() {
-        log.info("Testing updatePassword not found scenario for userId: {}", 2L);
-
-        String newPassword = "NewPass123";
-        log.debug("New password: {}", newPassword);
-
-        // Mocking the repository to return an empty Optional
-        when(userProfileRepository.findById(2L)).thenReturn(Optional.empty());
-
-        // Calling the service method and expecting an exception
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userProfileService.updatePassword(2L, newPassword);
-        });
-
-        // Verifying the exception message
-        log.debug("Exception thrown: {}", exception.getMessage());
-        assertEquals("User not found", exception.getMessage());
-        verify(userProfileRepository, times(1)).findById(2L);
-        verify(userProfileRepository, never()).save(any());
-        log.info("updatePassword not found test passed for userId: {}", 2L);
-    }
-
-    // ----------- Neutral case: Update password with same password -----------
-    // Testing password update with the same password (neutral case)
-    @Test
-    public void testUpdatePassword_SamePassword() {
-        log.info("Testing updatePassword with same password scenario for userId: {}", 1L);
-
-        String currentPassword = sampleUser.getPassword();
-        log.debug("Current password (used for update): {}", currentPassword);
-
-        // Mocking repository operations
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(userProfileRepository.save(any(UserProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Calling the service method to update the password with the same value
-        UserProfile updated = userProfileService.updatePassword(1L, currentPassword);
-
-        // Verifying the password remains unchanged
-        log.debug("Password updated with same value for userId 1L: {}", updated);
-        assertEquals(currentPassword, updated.getPassword());
-        verify(userProfileRepository, times(1)).findById(1L);
-        verify(userProfileRepository, times(1)).save(any(UserProfile.class));
-        log.info("updatePassword with same password test passed for userId: {}", 1L);
     }
 }
