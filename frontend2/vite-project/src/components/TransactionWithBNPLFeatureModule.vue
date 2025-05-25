@@ -1,4 +1,3 @@
-```vue
 <template>
   <div class="min-h-screen bg-gray-50 p-4 md:p-8">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
