@@ -241,20 +241,21 @@ const updateCardLimit = async (data) => {
   updatingLimit.value = true;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/api/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
+    const response = await fetch(`${API_BASE_URL}/cards/${data.cardId}/limit?newLimit=${data.newLimit}`, {
       method: 'PUT',
     });
     
     const responseText = await response.text();
     
     if (response.ok) {
-      const updatedCard = JSON.parse(responseText);
       const cardIndex = cards.value.findIndex(c => c.cardId === data.cardId);
       if (cardIndex !== -1) {
-        cards.value[cardIndex] = {
-          ...cards.value[cardIndex],
-          ...updatedCard,
-        };
+        const oldLimit = cards.value[cardIndex].creditLimit;
+        const newLimitValue = parseFloat(data.newLimit);
+        const availableLimitDifference = newLimitValue - oldLimit;
+
+        cards.value[cardIndex].creditLimit = newLimitValue;
+        cards.value[cardIndex].availableLimit += availableLimitDifference;
       }
       
       closeLimitModal();
