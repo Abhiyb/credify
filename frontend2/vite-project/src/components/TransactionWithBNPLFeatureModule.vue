@@ -1097,7 +1097,7 @@ const viewTransactionInstallments = async (id) => {
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8080/bnpl/installments/transaction/${id}`);
+    const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${id}`);
     if (!response.ok) {
       let errorMsg = 'Failed to fetch installments';
       if (response.status === 404) {
@@ -1174,7 +1174,7 @@ const fetchInstallments = async () => {
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8080/bnpl/installments/transaction/${transactionId}`);
+    const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transactionId}`);
     if (!response.ok) {
       let errorMsg = 'Failed to fetch installments';
       if (response.status === 404) {
@@ -1331,7 +1331,7 @@ const payInstallment = async (installment) => {
   try {
     const amount = parseFloat(installment.amount.toFixed(2));
     const response = await fetch(
-      `http://localhost:8080/bnpl/installments/${installment.id}/pay?amount=${amount}`,
+      `http://localhost:8089/bnpl/installments/${installment.id}/pay?amount=${amount}`,
       {
         method: 'POST'
       }
@@ -1352,7 +1352,7 @@ const payInstallment = async (installment) => {
     if (!transId) {
       throw new Error('Transaction ID not found in installment data');
     }
-    const res = await fetch(`http://localhost:8080/bnpl/installments/transaction/${transId}`);
+    const res = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transId}`);
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to refetch installments');
