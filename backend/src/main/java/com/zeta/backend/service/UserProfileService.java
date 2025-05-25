@@ -36,39 +36,26 @@ public class UserProfileService implements IUserProfileService {
         Optional<UserProfile> existingOpt = userProfileRepository.findById(userId);
 
         if (existingOpt.isPresent()) {
-            UserProfile profile = existingOpt.get();
+            UserProfile existingProfile = existingOpt.get();
 
-            // Update fields
-            profile.setFullName(updatedProfile.getFullName());
-            profile.setEmail(updatedProfile.getEmail());
-            profile.setPhone(updatedProfile.getPhone());
-            profile.setAddress(updatedProfile.getAddress());
-            profile.setAnnualIncome(updatedProfile.getAnnualIncome());
-            profile.setIsEligibleForBNPL(updatedProfile.getIsEligibleForBNPL());
-            profile.setPassword(updatedProfile.getPassword());
+            // Build a new UserProfile instance with updated values but keep unchanged fields from existingProfile
+            UserProfile updated = UserProfile.builder()
+                    .userId(existingProfile.getUserId())  // keep the same userId (primary key)
+                    .fullName(updatedProfile.getFullName())
+                    .email(updatedProfile.getEmail())
+                    .phone(updatedProfile.getPhone())
+                    .address(updatedProfile.getAddress())
+                    .annualIncome(updatedProfile.getAnnualIncome())
+                    .isEligibleForBNPL(updatedProfile.getIsEligibleForBNPL())
+                    .password(updatedProfile.getPassword())
+                    .build();
 
             log.info("User profile updated successfully for userId: {}", userId);
-            return userProfileRepository.save(profile);
+            return userProfileRepository.save(updated);
+
         } else {
             log.warn("User profile not found for update. userId: {}", userId);
             throw new RuntimeException("User profile not found");
         }
-    }
-
-    // Update password for a given userId
-    public UserProfile updatePassword(Long userId, String newPassword) {
-        log.info("Attempting password update for userId: {}", userId);
-        Optional<UserProfile> optionalUser = userProfileRepository.findById(userId);
-
-        if (optionalUser.isEmpty()) {
-            log.warn("Password update failed - user not found: {}", userId);
-            throw new RuntimeException("User not found");
-        }
-
-        UserProfile user = optionalUser.get();
-        user.setPassword(newPassword);
-
-        log.info("Password updated successfully for userId: {}", userId);
-        return userProfileRepository.save(user);
     }
 }

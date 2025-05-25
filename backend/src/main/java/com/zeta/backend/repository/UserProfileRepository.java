@@ -17,5 +17,4 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
 
     boolean existsByFullName(String fullName);
 
-    boolean existsByPassword(String password);
 }
