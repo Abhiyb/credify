@@ -3,18 +3,18 @@
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
       <!-- Header -->
       <div class="bg-primary text-white p-6 flex justify-between items-center">
-  <div>
-    <h1 class="text-2xl font-bold">Buy Now Pay Later</h1>
-    <p class="text-sm opacity-80">Flexible payment options for your purchases</p>
-  </div>
-  <button 
-    @click="$router.push('/dashboard')"
-    class="px-4 py-2 bg-white text-primary rounded-md hover:bg-gray-100 transition-colors"
-    aria-label="Back to Dashboard"
-  >
-    Back to Dashboard
-  </button>
-</div>
+        <div>
+          <h1 class="text-2xl font-bold">Buy Now Pay Later</h1>
+          <p class="text-sm opacity-80">Flexible payment options for your purchases</p>
+        </div>
+        <button 
+          @click="$router.push('/dashboard')"
+          class="px-4 py-2 bg-white text-primary rounded-md hover:bg-gray-100 transition-colors"
+          aria-label="Back to Dashboard"
+        >
+          Back to Dashboard
+        </button>
+      </div>
 
       <!-- Step indicator -->
       <div class="px-6 pt-6">
@@ -673,9 +673,9 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span 
                           :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${transaction.isBNPL ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
+                                  ${isBNPL(transaction) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
                         >
-                          {{ transaction.isBNPL ? 'BNPL' : 'Paid in Full' }}
+                          {{ isBNPL(transaction) ? 'BNPL' : 'Paid in Full' }}
                         </span>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -688,7 +688,7 @@
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button 
-                          v-if="transaction.isBNPL"
+                          v-if="isBNPL(transaction)"
                           @click="viewTransactionInstallments(transaction.id)"
                           class="text-primary hover:text-primary-dark"
                           :aria-label="`View Installments for Transaction ${transaction.id}`"
@@ -923,6 +923,9 @@ const calculatedInstallments = computed(() => {
   return installments;
 });
 
+// Helper function to safely handle isBNPL
+const isBNPL = (transaction) => transaction.isBNPL ?? false;
+
 // Methods
 const checkEligibility = async () => {
   if (!transaction.value.cardId || !/^\d+$/.test(transaction.value.cardId)) {
@@ -969,6 +972,7 @@ const checkEligibility = async () => {
 const selectPaymentMethod = (method) => {
   selectedPaymentMethod.value = method;
   transaction.value.isBNPL = method === 'bnpl';
+  console.log('Payment method selected:', method, 'isBNPL:', transaction.value.isBNPL); // Debug log
   if (method === 'full') {
     selectedPlan.value = null;
     transaction.value.installmentPlan = '';
@@ -990,6 +994,7 @@ const proceedToPayInFull = () => {
   transaction.value.isBNPL = false;
   selectedPlan.value = null;
   transaction.value.installmentPlan = '';
+  console.log('Proceeding to pay in full, isBNPL:', transaction.value.isBNPL); // Debug log
   currentStep.value = 2;
 };
 
@@ -1003,8 +1008,14 @@ const confirmTransaction = async () => {
     isBNPL: transaction.value.isBNPL,
     installmentPlan: transaction.value.installmentPlan || 'THREE'
   };
+  console.log('Confirming transaction with payload:', payload); // Debug log
   try {
-    const response = await fetch(`http://localhost:8089/transactions?plan=${payload.installmentPlan}`, {
+    // Use /transactions/bnpl for BNPL transactions, /transactions for regular
+    const endpoint = payload.isBNPL 
+      ? `http://localhost:8089/transactions/bnpl?plan=${payload.installmentPlan}`
+      : `http://localhost:8089/transactions`;
+    
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -1014,7 +1025,7 @@ const confirmTransaction = async () => {
       throw new Error(errorData.message || `Transaction failed: ${response.status}`);
     }
     const savedTransaction = await response.json();
-    console.log(savedTransaction);
+    console.log('Saved transaction:', JSON.stringify(savedTransaction, null, 2)); // Updated debug log
     transactions.value.unshift(savedTransaction);
     totalTransactions.value++;
     currentStep.value = 3;
@@ -1059,13 +1070,18 @@ const viewInstallments = async () => {
       throw new Error(errorMsg);
     }
     const data = await response.json();
-    installments.value = data;
-    displayedInstallments.value = data;
-    installmentsFetched.value = data.length > 0;
+    console.log('Installments for transaction', transactionId, ':', data); // Debug log
+    const enrichedData = data.map(installment => ({
+      ...installment,
+      transactionId: installment.transaction?.id || transactionId
+    }));
+    installments.value = enrichedData;
+    displayedInstallments.value = enrichedData;
+    installmentsFetched.value = enrichedData.length > 0;
     searchTransactionId.value = transactionId.toString();
     installmentFilter.value = 'all';
     currentStep.value = 4;
-    errorMessage.value = data.length === 0 ? 'No installments found for this Transaction ID' : '';
+    errorMessage.value = enrichedData.length === 0 ? 'No installments found for this Transaction ID' : '';
   } catch (error) {
     console.error('Error fetching installments:', {
       message: error.message,
@@ -1113,7 +1129,7 @@ const viewTransactionInstallments = async (id) => {
       throw new Error(errorMsg);
     }
     const data = await response.json();
-    console.log('Raw installments response:', data);
+    console.log('Installments for transaction', id, ':', data); // Debug log
     const enrichedData = data.map(installment => ({
       ...installment,
       transactionId: installment.transaction?.id || id
@@ -1190,7 +1206,7 @@ const fetchInstallments = async () => {
       throw new Error(errorMsg);
     }
     const data = await response.json();
-    console.log('Raw installments response:', data);
+    console.log('Installments for transaction', transactionId, ':', data); // Debug log
     const enrichedData = data.map(installment => ({
       ...installment,
       transactionId: installment.transaction?.id || transactionId
@@ -1217,6 +1233,62 @@ const fetchInstallments = async () => {
   }
 };
 
+// const fetchTransactions = async () => {
+//   if (!searchCardId.value || !/^\d+$/.test(searchCardId.value.trim())) {
+//     alert('Please enter a valid numeric Card ID');
+//     return;
+//   }
+//   loading.value = true;
+//   errorMessage.value = '';
+
+//   try {
+//     const response = await fetch(`http://localhost:8089/transactions/card/${searchCardId.value.trim()}`, {
+//       method: 'GET',
+//       headers: { 'Content-Type': 'application/json' }
+//     });
+//     if (!response.ok) {
+//       const errorData = await response.json().catch(() => ({}));
+//       throw new Error(errorData.message || `Failed to fetch transactions: ${response.status}`);
+//     }
+//     const rawTransactions = await response.json();
+//     console.log('Raw transactions response:', JSON.stringify(rawTransactions, null, 2)); // Debug raw response
+//     let filteredTransactions = rawTransactions.map(t => ({
+//       ...t,
+//       isBNPL: t.isBNPL ?? false // Ensure isBNPL is boolean
+//     }));
+//     console.log('Processed transactions:', JSON.stringify(filteredTransactions, null, 2)); // Debug processed data
+//     if (transactionFilter.value !== 'all') {
+//       filteredTransactions = filteredTransactions.filter(t => isBNPL(t) === (transactionFilter.value === 'bnpl'));
+//     }
+//     if (dateFilter.value.from) {
+//       const fromDate = new Date(dateFilter.value.from);
+//       filteredTransactions = filteredTransactions.filter(t => new Date(t.transactionDate) >= fromDate);
+//     }
+//     if (dateFilter.value.to) {
+//       const toDate = new Date(dateFilter.value.to);
+//       toDate.setHours(23, 59, 59, 999);
+//       filteredTransactions = filteredTransactions.filter(t => new Date(t.transactionDate) <= toDate);
+//     }
+//     totalTransactions.value = filteredTransactions.length;
+//     const start = (currentPage.value - 1) * pageSize;
+//     const end = start + pageSize;
+//     transactions.value = filteredTransactions.slice(start, end);
+//     console.log('Displayed transactions:', JSON.stringify(transactions.value, null, 2)); // Debug displayed data
+//     errorMessage.value = filteredTransactions.length === 0 ? 'No transactions found for this Card ID' : '';
+//   } catch (error) {
+//     console.error('Error fetching transactions:', {
+//       message: error.message,
+//       cardId: searchCardId.value,
+//       status: error.response?.status
+//     });
+//     alert(`Error fetching transactions: ${error.message}`);
+//     transactions.value = [];
+//     totalTransactions.value = 0;
+//     errorMessage.value = error.message;
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 const fetchTransactions = async () => {
   if (!searchCardId.value || !/^\d+$/.test(searchCardId.value.trim())) {
     alert('Please enter a valid numeric Card ID');
@@ -1234,9 +1306,15 @@ const fetchTransactions = async () => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `Failed to fetch transactions: ${response.status}`);
     }
-    let filteredTransactions = await response.json();
+    const rawTransactions = await response.json();
+    console.log('Raw transactions response:', JSON.stringify(rawTransactions, null, 2)); // Debug raw response
+    let filteredTransactions = rawTransactions.map(t => ({
+      ...t,
+      isBNPL: t.bnpl ?? false // Map bnpl to isBNPL
+    }));
+    console.log('Processed transactions:', JSON.stringify(filteredTransactions, null, 2)); // Debug processed data
     if (transactionFilter.value !== 'all') {
-      filteredTransactions = filteredTransactions.filter(t => t.isBNPL === (transactionFilter.value === 'bnpl'));
+      filteredTransactions = filteredTransactions.filter(t => isBNPL(t) === (transactionFilter.value === 'bnpl'));
     }
     if (dateFilter.value.from) {
       const fromDate = new Date(dateFilter.value.from);
@@ -1251,6 +1329,7 @@ const fetchTransactions = async () => {
     const start = (currentPage.value - 1) * pageSize;
     const end = start + pageSize;
     transactions.value = filteredTransactions.slice(start, end);
+    console.log('Displayed transactions:', JSON.stringify(transactions.value, null, 2)); // Debug displayed data
     errorMessage.value = filteredTransactions.length === 0 ? 'No transactions found for this Card ID' : '';
   } catch (error) {
     console.error('Error fetching transactions:', {
@@ -1266,7 +1345,6 @@ const fetchTransactions = async () => {
     loading.value = false;
   }
 };
-
 const filterInstallments = (filter) => {
   installmentFilter.value = filter;
   if (filter === 'all') {
@@ -1358,7 +1436,7 @@ const payInstallment = async (installment) => {
       throw new Error(errorData.message || 'Failed to refetch installments');
     }
     const data = await res.json();
-    console.log('Raw installments response after payment:', data);
+    console.log('Raw installments response after payment:', data); // Debug log
     const enrichedData = data.map(i => ({
       ...i,
       transactionId: i.transaction?.id || transId
@@ -1396,7 +1474,6 @@ const isOverdue = (dueDate) => {
 
 const formatDate = (dateString) => {
   if (!dateString) {
-    // Return current date if dateString is missing
     return new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -1408,12 +1485,10 @@ const formatDate = (dateString) => {
   try {
     date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      // Try parsing YYYY-MM-DD format explicitly
       const parts = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
       if (parts) {
         date = new Date(parts[1], parts[2] - 1, parts[3]);
       } else {
-        // Fallback to current date if parsing fails
         console.warn(`Invalid date format: ${dateString}`);
         return new Date().toLocaleDateString('en-US', {
           year: 'numeric',
@@ -1424,7 +1499,6 @@ const formatDate = (dateString) => {
     }
   } catch (error) {
     console.warn(`Error parsing date: ${dateString}`, error);
-    // Fallback to current date
     return new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -1461,8 +1535,8 @@ onMounted(() => {
 
 <style>
 :root {
-  --color-primary: #007BFF;       /* violet-600 */
-  --color-primary-dark: ##007BFF;
+  --color-primary: #007BFF;
+  --color-primary-dark: #0056b3;
   --color-primary-50: #eff6ff;
 }
 

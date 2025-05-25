@@ -39,7 +39,7 @@ public class CardApplicationController {
         log.info("Fetching card application status for user ID: {}", userId);
         List<CardApplication> applications = cardApplicationService.getApplicationsByUserId(userId);
 
-        // 🔄 Use DTO
+        // 🔄 Use dto
         List<CardApplicationResponseDto> response = applications.stream()
                 .map(app -> CardApplicationResponseDto.builder()
                         .cardType(app.getCardType())

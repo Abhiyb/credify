@@ -1,8 +1,9 @@
 package com.zeta.backend.service;
 
+import com.zeta.backend.dto.TransactionCreateDTO;
+import com.zeta.backend.dto.TransactionResponseDTO;
 import com.zeta.backend.enums.InstallmentPlan;
-import com.zeta.backend.exception.ResourceNotFoundException;
-import com.zeta.backend.model.BNPLInstallment;
+import com.zeta.backend.exception.*;
 import com.zeta.backend.model.Card;
 import com.zeta.backend.model.Transaction;
 import com.zeta.backend.repository.BNPLInstallmentRepository;
@@ -12,14 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-
+import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-class TransactionServiceTest {
+public class TransactionServiceTest {
 
     @InjectMocks
     private TransactionService transactionService;
@@ -28,130 +29,129 @@ class TransactionServiceTest {
     private TransactionRepository transactionRepository;
 
     @Mock
-    private BNPLInstallmentRepository bnplInstallmentRepository;
-
-    @Mock
     private CardRepository cardRepository;
 
-    /**
-     * Initialize mocks before each test and log start of test suite.
-     */
+    @Mock
+    private BNPLInstallmentRepository bnplInstallmentRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        log.info("Starting a test...");
     }
 
     /**
-     * Test simulating a successful regular transaction with sufficient card limit.
+     * Test successful regular transaction simulation.
      */
     @Test
-    void testSimulateRegularTransaction_success() {
-        log.info("Running testSimulateRegularTransaction_success");
+    void testSimulateRegularTransaction_Success() {
+        log.info("Running testSimulateRegularTransaction_Success");
 
-        // Setup transaction and card with sufficient limit
-        Transaction txn = new Transaction();
-        txn.setAmount(500.0);
-        txn.setCard(new Card());
-        txn.getCard().setCardId(1L);
-        txn.getCard().setStatus("ACTIVE");
-        txn.getCard().setAvailableLimit(1000.0);
-
-        when(cardRepository.findById(1L)).thenReturn(Optional.of(txn.getCard()));
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(txn);
-
-        // Call the service method
-        Transaction result = transactionService.simulateRegularTransaction(txn);
-
-        // Verify transaction and card state
-        assertFalse(result.getIsBNPL());
-        assertEquals("Completed", result.getStatus());
-        verify(cardRepository).save(any(Card.class));
-        verify(transactionRepository).save(txn);
-
-        log.info("Completed testSimulateRegularTransaction_success successfully");
-    }
-
-    /**
-     * Test simulating a regular transaction when card limit is insufficient, expecting exception.
-     */
-    @Test
-    void testSimulateRegularTransaction_insufficientLimit() {
-        log.info("Running testSimulateRegularTransaction_insufficientLimit");
-
-        Transaction txn = new Transaction();
-        txn.setAmount(1500.0);
         Card card = new Card();
         card.setCardId(1L);
-        card.setAvailableLimit(1000.0);
         card.setStatus("ACTIVE");
-        txn.setCard(card);
+        card.setAvailableLimit(5000.0);
+
+        TransactionCreateDTO dto = new TransactionCreateDTO();
+        dto.setCardId(1L);
+        dto.setAmount(1000.0);
+        dto.setCategory("Shopping");
+        dto.setMerchantName("Amazon");
+
+        Transaction saved = new Transaction();
+        saved.setId(1L);
+        saved.setAmount(1000.0);
+        saved.setCard(card);
+        saved.setTransactionDate(LocalDate.now());
 
         when(cardRepository.findById(1L)).thenReturn(Optional.of(card));
+        when(cardRepository.save(any())).thenReturn(card);
+        when(transactionRepository.save(any())).thenReturn(saved);
 
-        // Expect exception due to insufficient limit
-        assertThrows(IllegalStateException.class, () -> transactionService.simulateRegularTransaction(txn));
+        TransactionResponseDTO response = transactionService.simulateRegularTransaction(dto);
 
-        log.info("Completed testSimulateRegularTransaction_insufficientLimit successfully");
+        assertEquals(1000.0, response.getAmount());
+        verify(transactionRepository, times(1)).save(any());
+        log.info("Completed testSimulateRegularTransaction_Success");
     }
 
     /**
-     * Test simulating a BNPL transaction that creates installments successfully.
+     * Test regular transaction with insufficient credit.
      */
     @Test
-    void testSimulateBNPLTransaction_createsInstallments() {
-        log.info("Running testSimulateBNPLTransaction_createsInstallments");
+    void testSimulateRegularTransaction_InsufficientCredit() {
+        log.info("Running testSimulateRegularTransaction_InsufficientCredit");
 
-        Transaction txn = new Transaction();
-        txn.setAmount(1200.0);
         Card card = new Card();
-        card.setCardId(1L);
-        card.setAvailableLimit(2000.0);
+        card.setCardId(2L);
         card.setStatus("ACTIVE");
-        txn.setCard(card);
+        card.setAvailableLimit(500.0);
 
-        when(cardRepository.findById(1L)).thenReturn(Optional.of(card));
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(txn);
+        TransactionCreateDTO dto = new TransactionCreateDTO();
+        dto.setCardId(2L);
+        dto.setAmount(1000.0);
 
-        // Simulate BNPL transaction with 3-installment plan
-        Transaction result = transactionService.simulateBNPLTransaction(txn, InstallmentPlan.THREE);
+        when(cardRepository.findById(2L)).thenReturn(Optional.of(card));
 
-        // Validate BNPL flags and status
-        assertTrue(result.getIsBNPL());
-        assertEquals("Pending", result.getStatus());
-        verify(bnplInstallmentRepository).saveAll(anyList());
+        assertThrows(InsufficientCreditLimitException.class, () -> {
+            transactionService.simulateRegularTransaction(dto);
+        });
 
-        log.info("Completed testSimulateBNPLTransaction_createsInstallments successfully");
+        log.info("Completed testSimulateRegularTransaction_InsufficientCredit");
     }
 
     /**
-     * Test getting a transaction by ID when not found, expecting ResourceNotFoundException.
+     * Test BNPL transaction with invalid plan.
      */
     @Test
-    void testGetTransactionById_notFound() {
-        log.info("Running testGetTransactionById_notFound");
+    void testSimulateBNPLTransaction_InvalidPlan() {
+        log.info("Running testSimulateBNPLTransaction_InvalidPlan");
 
-        when(transactionRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> transactionService.getTransactionById(1L));
+        TransactionCreateDTO dto = new TransactionCreateDTO();
+        dto.setCardId(3L);
+        dto.setAmount(1200.0);
 
-        log.info("Completed testGetTransactionById_notFound successfully");
+        assertThrows(InvalidInstallmentPlanException.class, () -> {
+            transactionService.simulateBNPLTransaction(dto, InstallmentPlan.TWELVE);
+        });
+
+        log.info("Completed testSimulateBNPLTransaction_InvalidPlan");
     }
 
     /**
-     * Test deleting a transaction successfully by ID.
+     * Test get transaction history by card ID.
      */
     @Test
-    void testDeleteTransaction_success() {
-        log.info("Running testDeleteTransaction_success");
+    void testGetTransactionHistoryByCardId() {
+        log.info("Running testGetTransactionHistoryByCardId");
 
-        Transaction txn = new Transaction();
-        txn.setId(1L);
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(txn));
+        Transaction tx = new Transaction();
+        tx.setId(1L);
+        tx.setAmount(200.0);
+        tx.setTransactionDate(LocalDate.now());
 
-        transactionService.deleteTransaction(1L);
+        when(transactionRepository.findByCardId(1L)).thenReturn(List.of(tx));
 
-        verify(transactionRepository).delete(txn);
+        List<TransactionResponseDTO> result = transactionService.getTransactionHistoryByCardId(1L);
 
-        log.info("Completed testDeleteTransaction_success successfully");
+        assertEquals(1, result.size());
+        assertEquals(200.0, result.get(0).getAmount());
+
+        log.info("Completed testGetTransactionHistoryByCardId");
+    }
+
+    /**
+     * Test get transaction by ID throws exception if not found.
+     */
+    @Test
+    void testGetTransactionById_NotFound() {
+        log.info("Running testGetTransactionById_NotFound");
+
+        when(transactionRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            transactionService.getTransactionById(999L);
+        });
+
+        log.info("Completed testGetTransactionById_NotFound");
     }
 }

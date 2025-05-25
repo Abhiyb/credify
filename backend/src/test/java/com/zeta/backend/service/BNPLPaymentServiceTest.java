@@ -1,155 +1,198 @@
 package com.zeta.backend.service;
 
-import com.zeta.backend.exception.ResourceNotFoundException;
+import com.zeta.backend.dto.BNPLInstallmentCreateDTO;
+import com.zeta.backend.dto.BNPLInstallmentResponseDTO;
+import com.zeta.backend.dto.BNPLInstallmentUpdateDTO;
+import com.zeta.backend.exception.BadRequestException;
 import com.zeta.backend.model.BNPLInstallment;
+import com.zeta.backend.model.Transaction;
 import com.zeta.backend.repository.BNPLInstallmentRepository;
+import com.zeta.backend.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for BNPLPaymentService.
+ * Tests various service methods including payment processing, retrieval, creation, update, and deletion.
+ */
 @Slf4j
-@ExtendWith(MockitoExtension.class)
 class BNPLPaymentServiceTest {
 
-    @InjectMocks
-    private BNPLPaymentService service;  // Service under test
+    @Mock
+    private BNPLInstallmentRepository installmentRepository;
 
     @Mock
-    private BNPLInstallmentRepository repository;  // Mock repository dependency
+    private TransactionRepository transactionRepository;
 
-    // Test successful payment of an installment when the paid amount matches the installment amount
+    @Mock
+    private LateFeeCalculatorService lateFeeCalculatorService;
+
+    @InjectMocks
+    private BNPLPaymentService bnplPaymentService;
+
+    private BNPLInstallment installment;
+    private Transaction transaction;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        transaction = new Transaction();
+        transaction.setId(1L);
+
+        installment = new BNPLInstallment();
+        installment.setId(100L);
+        installment.setTransaction(transaction);
+        installment.setInstallmentNumber(1);
+        installment.setAmount(500.0);
+        installment.setDueDate(LocalDate.now().plusDays(10));
+        installment.setIsPaid(false);
+    }
+
+    /**
+     * Tests successful payment processing of an unpaid installment with matching amount.
+     */
     @Test
     void testPayInstallment_success() {
-        BNPLInstallment inst = new BNPLInstallment();
-        inst.setAmount(500.0);
-        inst.setIsPaid(false);
-        // Mock repository to return this installment for id 1L
-        when(repository.findById(1L)).thenReturn(Optional.of(inst));
+        log.info("Test: payInstallment - success case");
 
-        log.info("Testing payInstallment with correct amount");
-        service.payInstallment(1L, 500.0);
+        when(installmentRepository.findById(installment.getId())).thenReturn(Optional.of(installment));
+        when(installmentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(lateFeeCalculatorService.calculateLateFeeForInstallment(any())).thenReturn(0.0);
 
-        // After payment, installment should be marked as paid
-        assertTrue(inst.getIsPaid());
-        log.info("Installment marked as paid successfully");
+        BNPLInstallmentResponseDTO response = bnplPaymentService.payInstallment(installment.getId(), 500.0);
 
-        // Verify that the repository save method was called to persist changes
-        verify(repository).save(inst);
+        assertNotNull(response);
+        assertTrue(response.getIsPaid());
+        assertEquals(installment.getId(), response.getId());
+        verify(installmentRepository, times(1)).save(installment);
+        log.info("Payment successfully processed for installment ID: {}", installment.getId());
     }
 
-    // Test payment with incorrect amount should throw IllegalArgumentException
+    /**
+     * Tests payment fails if installment is already paid.
+     */
     @Test
-    void testPayInstallment_amountMismatch() {
-        BNPLInstallment inst = new BNPLInstallment();
-        inst.setAmount(500.0);
-        when(repository.findById(1L)).thenReturn(Optional.of(inst));
+    void testPayInstallment_alreadyPaid() {
+        log.info("Test: payInstallment - already paid case");
 
-        log.info("Testing payInstallment with incorrect amount");
-        // Expect exception due to amount mismatch
-        assertThrows(IllegalArgumentException.class, () -> service.payInstallment(1L, 600.0));
-        log.info("IllegalArgumentException thrown as expected");
+        installment.setIsPaid(true);
+        when(installmentRepository.findById(installment.getId())).thenReturn(Optional.of(installment));
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> bnplPaymentService.payInstallment(installment.getId(), 500.0));
+        assertEquals("Installment is already paid", ex.getMessage());
+        log.info("Correctly threw exception for already paid installment");
     }
 
-    // Test behavior when the installment id does not exist - should throw ResourceNotFoundException
+    /**
+     * Tests payment fails if amount does not match installment amount.
+     */
     @Test
-    void testPayInstallment_notFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-        log.info("Testing payInstallment with nonexistent installment");
-        assertThrows(ResourceNotFoundException.class, () -> service.payInstallment(1L, 500.0));
-        log.info("ResourceNotFoundException thrown as expected");
+    void testPayInstallment_invalidAmount() {
+        log.info("Test: payInstallment - invalid amount case");
+
+        when(installmentRepository.findById(installment.getId())).thenReturn(Optional.of(installment));
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> bnplPaymentService.payInstallment(installment.getId(), 400.0));
+        assertEquals("Payment amount must match installment amount", ex.getMessage());
+        log.info("Correctly threw exception for invalid payment amount");
     }
 
-    // Test retrieval of pending (unpaid) installments by transaction id
+    /**
+     * Tests retrieval of pending installments by transaction ID.
+     */
     @Test
     void testGetPendingInstallmentsByTransactionId() {
-        List<BNPLInstallment> list = List.of(new BNPLInstallment());
-        when(repository.findByTransaction_IdAndIsPaidFalse(10L)).thenReturn(list);
+        log.info("Test: getPendingInstallmentsByTransactionId");
 
-        log.info("Testing getPendingInstallmentsByTransactionId");
-        List<BNPLInstallment> result = service.getPendingInstallmentsByTransactionId(10L);
+        when(installmentRepository.findByTransaction_IdAndIsPaidFalse(transaction.getId()))
+                .thenReturn(List.of(installment));
+        when(lateFeeCalculatorService.calculateLateFeeForInstallment(any())).thenReturn(0.0);
 
-        // Should return exactly one pending installment
-        assertEquals(1, result.size());
-        log.info("Pending installments returned: {}", result.size());
+        List<BNPLInstallmentResponseDTO> results = bnplPaymentService.getPendingInstallmentsByTransactionId(transaction.getId());
+
+        assertFalse(results.isEmpty());
+        assertEquals(1, results.size());
+        assertEquals(installment.getId(), results.get(0).getId());
+        log.info("Pending installments retrieval successful for transaction ID: {}", transaction.getId());
     }
 
-    // Test retrieval of overdue unpaid installments by card id
+    /**
+     * Tests creation of a new installment.
+     */
     @Test
-    void testGetOverdueInstallmentsByCardId() {
-        List<BNPLInstallment> list = List.of(new BNPLInstallment());
-        when(repository.findByTransaction_Card_CardIdAndIsPaidFalseAndDueDateBefore(anyLong(), any()))
-                .thenReturn(list);
+    void testCreateInstallment_success() {
+        log.info("Test: createInstallment");
 
-        log.info("Testing getOverdueInstallmentsByCardId");
-        List<BNPLInstallment> result = service.getOverdueInstallmentsByCardId(5L);
+        BNPLInstallmentCreateDTO createDTO = new BNPLInstallmentCreateDTO();
+        createDTO.setTransactionId(transaction.getId());
+        createDTO.setInstallmentNumber(1);
+        createDTO.setAmount(500.0);
+        createDTO.setDueDate(LocalDate.now().plusDays(10));
+        createDTO.setIsPaid(false);
 
-        // Should return exactly one overdue installment
-        assertEquals(1, result.size());
-        log.info("Overdue installments returned: {}", result.size());
+        when(transactionRepository.findById(transaction.getId())).thenReturn(Optional.of(transaction));
+        when(installmentRepository.save(any())).thenAnswer(i -> {
+            BNPLInstallment saved = i.getArgument(0);
+            saved.setId(101L);
+            return saved;
+        });
+        when(lateFeeCalculatorService.calculateLateFeeForInstallment(any())).thenReturn(0.0);
+
+        BNPLInstallmentResponseDTO responseDTO = bnplPaymentService.createInstallment(createDTO);
+
+        assertNotNull(responseDTO);
+        assertEquals(101L, responseDTO.getId());
+        assertEquals(transaction.getId(), responseDTO.getTransactionId());
+        log.info("Installment created successfully with ID: {}", responseDTO.getId());
     }
 
-    // Test retrieval of all installments (paid and unpaid) by transaction id
+    /**
+     * Tests deletion of an existing installment.
+     */
     @Test
-    void testGetAllInstallmentsByTransactionId() {
-        List<BNPLInstallment> list = List.of(new BNPLInstallment());
-        when(repository.findByTransactionId(20L)).thenReturn(list);
+    void testDeleteInstallment_success() {
+        log.info("Test: deleteInstallment");
 
-        log.info("Testing getAllInstallmentsByTransactionId");
-        List<BNPLInstallment> result = service.getAllInstallmentsByTransactionId(20L);
+        when(installmentRepository.findById(installment.getId())).thenReturn(Optional.of(installment));
+        doNothing().when(installmentRepository).delete(installment);
 
-        // Should return exactly one installment
-        assertEquals(1, result.size());
-        log.info("All installments returned: {}", result.size());
+        assertDoesNotThrow(() -> bnplPaymentService.deleteInstallment(installment.getId()));
+        verify(installmentRepository, times(1)).delete(installment);
+        log.info("Installment deleted successfully with ID: {}", installment.getId());
     }
 
-    // Test basic CRUD operations using the repository mock
+    /**
+     * Tests update of an installment.
+     */
     @Test
-    void testCRUDMethods() {
-        BNPLInstallment inst = new BNPLInstallment();
-        inst.setInstallmentNumber(1);
+    void testUpdateInstallment_success() {
+        log.info("Test: updateInstallment");
 
-        // Mock repository CRUD responses
-        when(repository.findAll()).thenReturn(List.of(inst));
-        when(repository.findById(1L)).thenReturn(Optional.of(inst));
-        when(repository.save(any())).thenReturn(inst);
+        BNPLInstallmentUpdateDTO updateDTO = new BNPLInstallmentUpdateDTO();
+        updateDTO.setAmount(600.0);
+        updateDTO.setDueDate(LocalDate.now().plusDays(15));
+        updateDTO.setIsPaid(true);
+        updateDTO.setInstallmentNumber(2);
 
-        log.info("Testing CRUD methods");
+        when(installmentRepository.findById(installment.getId())).thenReturn(Optional.of(installment));
+        when(installmentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(lateFeeCalculatorService.calculateLateFeeForInstallment(any())).thenReturn(0.0);
 
-        // Test getting all installments returns the list with one item
-        assertEquals(1, service.getAllInstallments().size());
-        log.info("getAllInstallments returned 1");
+        BNPLInstallmentResponseDTO response = bnplPaymentService.updateInstallment(installment.getId(), updateDTO);
 
-        // Test getInstallmentById returns the correct installment
-        assertEquals(inst, service.getInstallmentById(1L));
-        log.info("getInstallmentById returned installment with number {}", inst.getInstallmentNumber());
-
-        // Test creating installment returns the created installment
-        assertEquals(inst, service.createInstallment(inst));
-        log.info("createInstallment returned created installment");
-
-        // Test updating installment returns the updated installment
-        assertEquals(inst, service.updateInstallment(1L, inst));
-        log.info("updateInstallment updated installment");
-
-        // Test deleting installment calls repository.delete
-        service.deleteInstallment(1L);
-        verify(repository).delete(inst);
-        log.info("deleteInstallment deleted installment");
-    }
-
-    // Test getInstallmentById when the installment is not found, should throw ResourceNotFoundException
-    @Test
-    void testGetInstallmentById_notFound() {
-        when(repository.findById(2L)).thenReturn(Optional.empty());
-        log.info("Testing getInstallmentById with nonexistent id");
-        assertThrows(ResourceNotFoundException.class, () -> service.getInstallmentById(2L));
-        log.info("ResourceNotFoundException thrown as expected");
+        assertNotNull(response);
+        assertEquals(updateDTO.getAmount(), response.getAmount());
+        assertEquals(updateDTO.getIsPaid(), response.getIsPaid());
+        log.info("Installment updated successfully for ID: {}", installment.getId());
     }
 }
