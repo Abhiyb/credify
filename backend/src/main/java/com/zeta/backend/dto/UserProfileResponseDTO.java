@@ -2,6 +2,8 @@ package com.zeta.backend.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,4 +16,6 @@ public class UserProfileResponseDTO {
     private String address;
     private Double annualIncome;
     private Boolean isEligibleForBNPL;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
