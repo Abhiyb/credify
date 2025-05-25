@@ -1,6 +1,6 @@
 package com.zeta.backend.controller;
 
-import com.zeta.backend.DTO.CardApplicationResponseDto; // 🔄 MODIFIED
+import com.zeta.backend.dto.CardApplicationResponseDto; // 🔄 MODIFIED
 import com.zeta.backend.model.CardApplication;
 import com.zeta.backend.service.ICardApplicationService;
 import lombok.RequiredArgsConstructor;

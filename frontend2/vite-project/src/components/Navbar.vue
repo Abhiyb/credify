@@ -9,7 +9,9 @@
         <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
           <span class="text-white font-bold text-lg">C</span>
         </div>
-        <h1 class="text-xl font-bold text-gray-800">Credify</h1>
+        
+        <router-link to="/dashboard" class="text-xl font-bold text-gray-800">Credify</router-link>
+
       </div>
 
       <!-- Desktop Navigation -->
