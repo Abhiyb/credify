@@ -88,6 +88,8 @@ public class UserProfileController {
         response.setAddress(saved.getAddress());
         response.setAnnualIncome(saved.getAnnualIncome());
         response.setIsEligibleForBNPL(saved.getIsEligibleForBNPL());
+        response.setCreatedAt(saved.getCreatedAt());
+        response.setUpdatedAt(saved.getUpdatedAt());
 
         log.info("User profile created successfully with ID: {}", saved.getUserId());
         return ResponseEntity.ok(response);
@@ -108,6 +110,8 @@ public class UserProfileController {
             response.setAddress(data.getAddress());
             response.setAnnualIncome(data.getAnnualIncome());
             response.setIsEligibleForBNPL(data.getIsEligibleForBNPL());
+            response.setCreatedAt(data.getCreatedAt());
+            response.setUpdatedAt(data.getUpdatedAt());
 
             log.info("Profile found for userId: {}", userId);
             return ResponseEntity.ok(response);
@@ -131,6 +135,7 @@ public class UserProfileController {
             dto.setAddress(data.getAddress());
             dto.setAnnualIncome(data.getAnnualIncome());
             dto.setIsEligibleForBNPL(data.getIsEligibleForBNPL());
+
             return dto;
         }).toList();
         return ResponseEntity.ok(response);
@@ -198,6 +203,8 @@ public class UserProfileController {
             response.setAddress(saved.getAddress());
             response.setAnnualIncome(saved.getAnnualIncome());
             response.setIsEligibleForBNPL(saved.getIsEligibleForBNPL());
+            response.setCreatedAt(saved.getCreatedAt());
+            response.setUpdatedAt(saved.getUpdatedAt());
 
             log.info("User profile updated successfully for userId: {}", userId);
             return ResponseEntity.ok(response);
@@ -213,26 +220,30 @@ public class UserProfileController {
         String email = credentials.get("email");
         String password = credentials.get("password");
 
-        log.info("Login attempt for email: {}", email);
         Optional<UserProfile> userOpt = userProfileRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
             log.warn("Login failed - user not found: {}", email);
-            return ResponseEntity.status(404).body("User doesn't exist");
+            return ResponseEntity.status(404).body("User doesn't exist");  // return here
         }
 
         UserProfile user = userOpt.get();
+
+        log.info("Login attempt for user: {}", user.getFullName());
+
         if (!user.getPassword().equals(password)) {
-            log.warn("Login failed - invalid password for email: {}", email);
-            return ResponseEntity.status(401).body("Invalid password");
+            log.warn("Login failed - invalid password for user: {}", user.getFullName());
+            return ResponseEntity.status(401).body("Invalid password");  // return here
         }
 
         log.info("Login successful for userId: {}", user.getUserId());
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "userId", user.getUserId()
-        ));
+        ));  // return here
     }
+
+
 
     // Handles GET requests to check BNPL eligibility for a user
     @GetMapping("/{userId}/bnpl-eligibility")
@@ -294,6 +305,8 @@ public class UserProfileController {
         response.setAddress(saved.getAddress());
         response.setAnnualIncome(saved.getAnnualIncome());
         response.setIsEligibleForBNPL(saved.getIsEligibleForBNPL());
+        response.setCreatedAt(saved.getCreatedAt());
+        response.setUpdatedAt(saved.getUpdatedAt());
 
         log.info("Password updated successfully for userId: {}", userId);
         return ResponseEntity.ok(Map.of(

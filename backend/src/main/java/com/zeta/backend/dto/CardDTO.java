@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CardDto {
+public class CardDTO {
     private Long cardId;
     private String cardNumber;
     private String cardType;
