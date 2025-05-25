@@ -16,7 +16,6 @@ public class CardApplication {
     @Id
     @GeneratedValue()
     private Long id;
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private UserProfile user;
