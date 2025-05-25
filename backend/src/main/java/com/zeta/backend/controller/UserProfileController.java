@@ -243,8 +243,6 @@ public class UserProfileController {
         ));  // return here
     }
 
-
-
     // Handles GET requests to check BNPL eligibility for a user
     @GetMapping("/{userId}/bnpl-eligibility")
     public ResponseEntity<?> checkBnplEligibility(@PathVariable Long userId) {
