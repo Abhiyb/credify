@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -83,6 +84,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateCardApplicationException.class)
     public ResponseEntity<String> handleDuplicateCardApplication(DuplicateCardApplicationException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public class CardApplicationNotFoundException extends RuntimeException {
+        public CardApplicationNotFoundException(String message) {
+            super(message);
+        }
     }
 
 }
