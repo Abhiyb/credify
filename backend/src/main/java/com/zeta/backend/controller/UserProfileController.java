@@ -5,6 +5,7 @@ import com.zeta.backend.dto.UserProfileUpdateDTO;
 import com.zeta.backend.dto.UserProfileResponseDTO;
 import com.zeta.backend.model.UserProfile;
 import com.zeta.backend.repository.UserProfileRepository;
+import com.zeta.backend.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ public class UserProfileController {
     @Autowired
     private UserProfileRepository userProfileRepository;
 
+     @Autowired
+     private UserProfileService userProfileService;
     // ========================== CREATE PROFILE ==========================
     // Handles POST requests to create a new user profile
     @PostMapping
@@ -250,5 +253,35 @@ public class UserProfileController {
                 "userId", userId,
                 "isEligibleForBNPL", eligible
         ));
+    }
+    // ========================== UPDATE PASSWORD ==========================
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<?> updatePassword(@PathVariable Long userId, @RequestBody Map<String, String> passwordData) {
+        log.info("Attempting to update password for userId: {}", userId);
+
+        // Extract password from request body
+        String newPassword = passwordData.get("password");
+
+        // Validate password presence
+        if (newPassword == null || newPassword.isBlank()) {
+            log.warn("Password is missing for userId: {}", userId);
+            return ResponseEntity.badRequest().body("Password is required");
+        }
+
+        // Validate password strength
+        if (!newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
+            log.warn("Invalid password format for userId: {}", userId);
+            return ResponseEntity.badRequest().body(
+                    "Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character (@#$%^&+=!)");
+        }
+
+        try {
+            userProfileService.updatePassword(userId, newPassword);
+            log.info("Password updated successfully for userId: {}", userId);
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        } catch (RuntimeException e) {
+            log.warn("Failed to update password for userId: {}. Error: {}", userId, e.getMessage());
+            return ResponseEntity.status(404).body("User not found");
+        }
     }
 }
