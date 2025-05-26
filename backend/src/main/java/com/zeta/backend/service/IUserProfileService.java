@@ -11,4 +11,5 @@ public interface IUserProfileService {
     Optional<UserProfile> getProfile(Long userId);
 
     UserProfile updateProfile(Long userId, UserProfile updatedProfile);
+    void updatePassword(Long userId, String newPassword);
 }

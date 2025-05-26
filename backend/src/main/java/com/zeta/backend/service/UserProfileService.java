@@ -58,4 +58,20 @@ public class UserProfileService implements IUserProfileService {
             throw new RuntimeException("User profile not found");
         }
     }
+    // Update user password
+    @Override
+    public void updatePassword(Long userId, String newPassword) {
+        log.info("Updating password for userId: {}", userId);
+        Optional<UserProfile> userOpt = userProfileRepository.findById(userId);
+
+        if (userOpt.isPresent()) {
+            UserProfile user = userOpt.get();
+            user.setPassword(newPassword);
+            userProfileRepository.save(user);
+            log.info("Password updated successfully for userId: {}", userId);
+        } else {
+            log.warn("User not found for password update. userId: {}", userId);
+            throw new RuntimeException("User not found");
+        }
+    }
 }
