@@ -143,6 +143,33 @@ public class UserProfileControllerTest {
 
         log.info("Profile update test passed");
     }
+    // Test case: successful deletion of profile
+    @Test
+    public void testDeleteProfile_Success() throws Exception {
+        log.info("Testing delete profile - valid userId");
+
+        // Mock that profile exists for given userId
+        when(userProfileRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(userProfileRepository).deleteById(1L);
+
+        mockMvc.perform(delete("/api/profile/1"))
+                .andExpect(status().isOk());
+
+        log.info("Profile deletion test passed");
+    }
+
+    // Test case: delete non-existent profile should return 404
+    @Test
+    public void testDeleteProfile_NotFound() throws Exception {
+        log.info("Testing delete profile - user not found");
+
+        when(userProfileRepository.existsById(1L)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/profile/1"))
+                .andExpect(status().isNotFound());
+
+        log.info("Handled delete for non-existent profile correctly");
+    }
 
     // Test case: successful login with valid credentials
     @Test
