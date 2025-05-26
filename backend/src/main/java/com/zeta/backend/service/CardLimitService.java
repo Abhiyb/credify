@@ -72,7 +72,7 @@ public class CardLimitService implements ICardLimitService {
             throw new InvalidLimitUpdateException("Requested credit limit is not eligible " + status);
         }
 
-        validateUsageFrequency(card.getCardId(),0);
+        validateUsageFrequency(card.getCardId(),1);
     }
 
     private void validateLimitDecrease(Card card, UserProfile profile,Double newLimit) {
