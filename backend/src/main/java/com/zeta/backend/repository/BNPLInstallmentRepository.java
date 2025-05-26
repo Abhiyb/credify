@@ -3,32 +3,67 @@ package com.zeta.backend.repository;
 import com.zeta.backend.model.BNPLInstallment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Repository interface for BNPLInstallment entity.
+ */
 @Repository
 public interface BNPLInstallmentRepository extends JpaRepository<BNPLInstallment, Long> {
 
-    @Query("SELECT b FROM BNPLInstallment b WHERE b.transaction.id = :transactionId")
-    List<BNPLInstallment> findByTransactionId(@Param("transactionId") Long transactionId);
+    /**
+     * Fetches all installments by a transaction ID.
+     *
+     * @param transactionId the transaction ID
+     * @return list of installments
+     */
+    List<BNPLInstallment> findByTransactionId(Long transactionId);
 
-    // Use this to fetch unpaid installments by transaction, ordered by installment number
+    /**
+     * Custom query to get unpaid installments ordered by installment number (ascending).
+     *
+     * @param transactionId the transaction ID
+     * @return list of unpaid installments
+     */
     @Query("SELECT b FROM BNPLInstallment b WHERE b.transaction.id = :transactionId AND b.isPaid = false ORDER BY b.installmentNumber ASC")
-    List<BNPLInstallment> getNextUnpaidInstallment(@Param("transactionId") Long transactionId);
+    List<BNPLInstallment> getNextUnpaidInstallment(Long transactionId);
 
+    /**
+     * Retrieves unpaid installments for a given transaction.
+     *
+     * @param transactionId the transaction ID
+     * @return list of unpaid installments
+     */
     @Query("SELECT b FROM BNPLInstallment b WHERE b.transaction.id = :transactionId AND b.isPaid = false")
-    List<BNPLInstallment> findUnpaidByTransactionId(@Param("transactionId") Long transactionId);
+    List<BNPLInstallment> findUnpaidByTransactionId(Long transactionId);
 
-    // Find overdue installments by card ID where dueDate is before today and isPaid = false
-    @Query("SELECT b FROM BNPLInstallment b WHERE b.transaction.card.id = :cardId AND b.isPaid = false AND b.dueDate < :today")
-    List<BNPLInstallment> findOverdueByCardId(@Param("cardId") Long cardId, @Param("today") LocalDate today);
+    /**
+     * Finds overdue unpaid installments for a given card.
+     *
+     * @param cardId   the card ID
+     * @param today    the current date to compare due dates
+     * @return list of overdue installments
+     */
+    @Query("SELECT b FROM BNPLInstallment b WHERE b.transaction.card.cardId = :cardId AND b.isPaid = false AND b.dueDate < :today")
+    List<BNPLInstallment> findOverdueByCardId(Long cardId, LocalDate today);
 
-    // Derived query methods matching entity field names:
+    /**
+     * Fetches unpaid installments using a derived query method.
+     *
+     * @param transactionId the transaction ID
+     * @return list of unpaid installments
+     */
     List<BNPLInstallment> findByTransaction_IdAndIsPaidFalse(Long transactionId);
 
+    /**
+     * Finds overdue unpaid installments using nested conditions.
+     *
+     * @param cardId the card ID
+     * @param date   the reference date (usually today)
+     * @return list of overdue unpaid installments
+     */
     List<BNPLInstallment> findByTransaction_Card_CardIdAndIsPaidFalseAndDueDateBefore(Long cardId, LocalDate date);
-
 }

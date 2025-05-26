@@ -335,6 +335,7 @@ public class TransactionService implements ITransactionService {
         dto.setTransactionDate(transaction.getTransactionDate());
         dto.setStatus(transaction.getStatus());
         dto.setBNPL(transaction.getIsBNPL());
+
         return dto;
     }
 }
