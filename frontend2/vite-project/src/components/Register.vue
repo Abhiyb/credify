@@ -485,7 +485,7 @@ const handleRegister = async () => {
     isLoading.value = false;
 
     setTimeout(() => {
-      router.push('/');
+      router.push('/login');
     }, 2000); // Redirect after 2 seconds to allow user to see the message
   } catch (error) {
     isLoading.value = false;
