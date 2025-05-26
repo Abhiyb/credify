@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/cards")
+@RequestMapping("/api/cards")
 public class CardLimitController {
 
     private final CardLimitService cardLimitService;

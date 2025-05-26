@@ -20,7 +20,7 @@ import java.util.List;
  * Uses DTOs for secure data transfer and logging for monitoring.
  */
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")

@@ -46,6 +46,7 @@ public class TransactionService implements ITransactionService {
      * @return Card entity.
      * @throws ResourceNotFoundException if card is not found.
      */
+
     private Card getCard(Long cardId) {
         log.debug("Fetching card with ID: {}", cardId);
         return cardRepository.findById(cardId)
