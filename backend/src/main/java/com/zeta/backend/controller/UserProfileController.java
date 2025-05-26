@@ -9,7 +9,7 @@ import com.zeta.backend.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -206,6 +206,20 @@ public class UserProfileController {
             log.warn("User profile not found for update. userId: {}", userId);
             return ResponseEntity.status(404).body("User profile not found.");
         }
+    }
+
+    // ========================== DELETE PROFILE ==========================
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteProfile(@PathVariable Long userId) {
+        log.info("Attempting to delete profile for userId: {}", userId);
+        if (!userProfileRepository.existsById(userId)) {
+            log.warn("User profile not found for delete. userId: {}", userId);
+            return ResponseEntity.status(404).body("User profile not found.");
+        }
+
+        userProfileRepository.deleteById(userId);
+        log.info("User profile deleted successfully for userId: {}", userId);
+        return ResponseEntity.ok(Map.of("message", "User profile deleted successfully."));
     }
 
     // ========================== LOGIN ==========================

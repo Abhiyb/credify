@@ -170,4 +170,47 @@ public class UserProfileServiceTest {
         verify(userProfileRepository, never()).save(any());
         log.info("updateProfile not found test passed for userId: {}", 99L);
     }
+    // ----------- deleteProfile() -----------
+
+    @Test
+    public void testDeleteProfile_Success() {
+        log.info("Testing deleteProfile success scenario for userId: {}", 1L);
+
+        // Mock repository to say user exists
+        when(userProfileRepository.existsById(1L)).thenReturn(true);
+
+        // No need to mock deleteById as it returns void, but verify it's called
+
+        // Call the service method
+        userProfileService.deleteProfile(1L);
+
+        // Verify that existsById and deleteById were called exactly once
+        verify(userProfileRepository, times(1)).existsById(1L);
+        verify(userProfileRepository, times(1)).deleteById(1L);
+
+        log.info("deleteProfile success test passed for userId: {}", 1L);
+    }
+
+    @Test
+    public void testDeleteProfile_UserNotFound_ThrowsException() {
+        log.info("Testing deleteProfile not found scenario for userId: {}", 99L);
+
+        // Mock repository to say user does NOT exist
+        when(userProfileRepository.existsById(99L)).thenReturn(false);
+
+        // Call service method and expect RuntimeException
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            userProfileService.deleteProfile(99L);
+        });
+
+        // Verify exception message
+        assertEquals("User profile not found", exception.getMessage());
+
+        // Verify existsById called, but deleteById never called
+        verify(userProfileRepository, times(1)).existsById(99L);
+        verify(userProfileRepository, never()).deleteById(any());
+
+        log.info("deleteProfile not found test passed for userId: {}", 99L);
+    }
+
 }
