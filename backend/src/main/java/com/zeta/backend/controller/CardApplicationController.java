@@ -52,4 +52,51 @@ public class CardApplicationController {
         log.info("Returning {} application(s) for user ID: {}", response.size(), userId);
         return ResponseEntity.ok(response);
     }
+    /**
+     * READ Operation
+     * Fetch a specific application by its ID
+     */
+    @GetMapping("/application/{applicationId}")
+    public ResponseEntity<CardApplication> getApplicationById(@PathVariable Long applicationId) {
+        log.info("🔍 Fetching card application by ID: {}", applicationId);
+
+        CardApplication application = cardApplicationService.getApplicationById(applicationId);
+
+        log.info("📄 Application found for ID: {}", applicationId);
+        return ResponseEntity.ok(application);
+    }
+
+    /**
+     * UPDATE Operation
+     * Update an existing credit card application
+     */
+    @PutMapping("/update/{applicationId}")
+    public ResponseEntity<CardApplication> updateApplication(
+            @PathVariable Long applicationId,
+            @RequestBody CardApplication updatedApplication) {
+
+        log.info("♻️ Updating card application with ID: {}", applicationId);
+
+        CardApplication application = cardApplicationService.updateApplication(applicationId, updatedApplication);
+
+        log.info("✅ Application updated successfully for ID: {}", applicationId);
+        return ResponseEntity.ok(application);
+    }
+
+    /**
+     * DELETE Operation
+     * Delete an application by its ID
+     */
+    @DeleteMapping("/delete/{applicationId}")
+    public ResponseEntity<String> deleteApplication(@PathVariable Long applicationId) {
+        log.info("❌ Deleting card application with ID: {}", applicationId);
+
+        cardApplicationService.deleteApplication(applicationId);
+
+        log.info("🗑️ Application deleted successfully for ID: {}", applicationId);
+        return ResponseEntity.ok("Application deleted successfully for ID: " + applicationId);
+    }
+
+
+
 }

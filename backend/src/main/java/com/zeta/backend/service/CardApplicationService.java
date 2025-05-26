@@ -1,5 +1,6 @@
 package com.zeta.backend.service;
 
+import com.zeta.backend.exception.CardApplicationNotFoundException;
 import com.zeta.backend.exception.DuplicateCardApplicationException;
 import com.zeta.backend.exception.UserNotFoundException;
 import com.zeta.backend.model.*;
@@ -94,6 +95,32 @@ public class CardApplicationService implements ICardApplicationService {
 
         log.info("Found {} application(s) for user ID: {}", applications.size(), userId);
         return applications;
+    }
+
+    @Override
+    public CardApplication getApplicationById(Long applicationId) {
+        log.debug("Fetching application with ID: {}", applicationId);
+        return applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new CardApplicationNotFoundException("Application not found with ID: " + applicationId));
+    }
+    @Override
+    public CardApplication updateApplication(Long applicationId, CardApplication updatedApplication) {
+        CardApplication existing = getApplicationById(applicationId);
+
+        log.debug("Updating application ID: {} with new data", applicationId);
+
+        existing.setCardType(updatedApplication.getCardType());
+        existing.setRequestedLimit(updatedApplication.getRequestedLimit());
+        existing.setStatus(updatedApplication.getStatus());
+
+        return applicationRepository.save(existing);
+    }
+
+    @Override
+    public void deleteApplication(Long applicationId) {
+        CardApplication application = getApplicationById(applicationId);
+        log.debug("Deleting application ID: {}", applicationId);
+        applicationRepository.delete(application);
     }
 
     // Utility method to generate a masked credit card number (last 4 digits visible)
