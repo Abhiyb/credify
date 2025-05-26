@@ -5,8 +5,8 @@
       <div class="flex justify-center mb-8">
         <a href="/" class="inline-flex items-center gap-2">
           <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-          <span class="text-white font-bold text-lg">C</span>
-        </div>
+            <span class="text-white font-bold text-lg">C</span>
+          </div>
           <span class="font-bold text-3xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Credify</span>
         </a>
       </div>
@@ -72,6 +72,11 @@
             <div class="text-center">
               <h2 class="text-2xl font-bold text-gray-900">Create your account</h2>
               <p class="text-gray-600">Enter your details below to register with CardMaster</p>
+            </div>
+
+            <!-- Success/Error Message -->
+            <div v-if="message" :class="['mt-4 p-4 rounded-lg', messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+              {{ message }}
             </div>
 
             <div class="space-y-6 mt-6">
@@ -299,6 +304,10 @@ const router = useRouter();
 // Reactive state for loading
 const isLoading = ref(false);
 
+// Reactive state for message
+const message = ref('');
+const messageType = ref('');
+
 // Reactive state for password visibility
 const showPassword = ref(false);
 const showRepeatPassword = ref(false);
@@ -423,6 +432,8 @@ const handleRegister = async () => {
   if (!validateForm()) return;
 
   isLoading.value = true;
+  message.value = ''; // Clear previous messages
+  messageType.value = '';
 
   // Prepare data for backend
   const userData = {
@@ -468,13 +479,18 @@ const handleRegister = async () => {
     localStorage.setItem('userId', user.userId.toString());
     localStorage.setItem('fullName', user.fullName);
 
-    // Reset loading state and redirect
+    // Show success message and redirect after a short delay
+    message.value = 'Registration successful! Redirecting to dashboard...';
+    messageType.value = 'success';
     isLoading.value = false;
-    alert('Registration successful!');
-    router.push('/dashboard');
+
+    setTimeout(() => {
+      router.push('/');
+    }, 2000); // Redirect after 2 seconds to allow user to see the message
   } catch (error) {
     isLoading.value = false;
-    alert(`Registration failed: ${error.message}`);
+    message.value = `Registration failed: ${error.message}`;
+    messageType.value = 'error';
   }
 };
 </script>
