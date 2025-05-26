@@ -43,6 +43,11 @@
 
       <!-- Main content area -->
       <div class="p-6">
+        <!-- Error Notification -->
+        <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6 text-sm text-red-700">
+          {{ errorMessage }}
+        </div>
+
         <!-- Step 1: Transaction Form -->
         <div v-if="currentStep === 0" class="space-y-6">
           <h2 class="text-xl font-semibold text-gray-800">Transaction Details</h2>
@@ -63,6 +68,7 @@
               <input 
                 v-model="transaction.amount" 
                 type="number" 
+                step="0.01"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 placeholder="Enter amount"
                 aria-label="Amount"
@@ -84,7 +90,7 @@
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">Merchant</label>
               <select 
-                v-model="transaction.merchant" 
+                v-model="transaction.merchantName" 
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 aria-label="Merchant"
                 required
@@ -148,7 +154,7 @@
                     <div v-if="selectedPaymentMethod === 'full'" class="w-3 h-3 rounded-full bg-primary"></div>
                   </div>
                   <div class="ml-3">
-                    <h3 class="font-medium">Pay in full</h3>
+                    <h3 class="font-medium">Pay in Full</h3>
                     <p class="text-sm text-gray-500">Pay the entire amount now</p>
                   </div>
                 </div>
@@ -268,7 +274,7 @@
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">Merchant:</span>
-              <span class="font-medium">{{ transaction.merchant }}</span>
+              <span class="font-medium">{{ transaction.merchantName }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">Category:</span>
@@ -327,7 +333,7 @@
           
           <div class="pt-6 flex flex-col md:flex-row justify-center space-y-3 md:space-y-0 md:space-x-3">
             <button 
-              @click="viewInstallments" 
+              @click="goToInstallments" 
               v-if="selectedPaymentMethod === 'bnpl'"
               class="px-6 py-3 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
               aria-label="View My Installments"
@@ -389,10 +395,6 @@
             </div>
           </div>
 
-          <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">
-            {{ errorMessage }}
-          </div>
-
           <div class="space-y-4">
             <div class="flex justify-between items-center">
               <div class="space-y-1">
@@ -401,14 +403,14 @@
                   <input 
                     v-model="searchTransactionId" 
                     type="text" 
-                    placeholder="Transaction ID" 
+                    placeholder="Enter Transaction ID" 
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     aria-label="Search by Transaction ID"
                   />
                   <button 
                     @click="fetchInstallments" 
                     class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-                    :disabled="loading"
+                    :disabled="loading || !searchTransactionId"
                     aria-label="Search Installments"
                   >
                     <span v-if="loading">Loading...</span>
@@ -416,13 +418,22 @@
                   </button>
                 </div>
               </div>
-              <button 
-                @click="viewTransactionHistory" 
-                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                aria-label="View Transactions"
-              >
-                View Transactions
-              </button>
+              <div class="flex space-x-2">
+                <button 
+                  @click="viewTransactionHistory" 
+                  class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  aria-label="View Transactions"
+                >
+                  View Transactions
+                </button>
+                <button 
+                  @click="resetForm" 
+                  class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                  aria-label="New Payment"
+                >
+                  New Payment
+                </button>
+              </div>
             </div>
 
             <div v-if="displayedInstallments.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
@@ -451,6 +462,9 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Late Fee
+                        </th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
                         </th>
@@ -477,6 +491,9 @@
                           >
                             {{ installment.isPaid ? 'Paid' : isOverdue(installment.dueDate) ? 'Overdue' : 'Pending' }}
                           </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          ₹{{ installment.lateFee.toFixed(2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button 
@@ -548,14 +565,14 @@
                   <input 
                     v-model="searchCardId" 
                     type="text" 
-                    placeholder="Card ID" 
+                    placeholder="Enter Card ID" 
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     aria-label="Search by Card ID"
                   />
                   <button 
                     @click="fetchTransactions" 
                     class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-                    :disabled="loading"
+                    :disabled="loading || !searchCardId"
                     aria-label="Search Transactions"
                   >
                     <span v-if="loading">Loading...</span>
@@ -565,7 +582,7 @@
               </div>
               <div class="flex space-x-2">
                 <button 
-                  @click="viewInstallments" 
+                  @click="goToInstallments" 
                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                   aria-label="View Installments"
                 >
@@ -617,158 +634,158 @@
               </button>
             </div>
 
-            <div v-if="transactions.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
-              <p class="text-gray-500">No transactions found</p>
+            <div v-if="loading" class="text-center py-8 bg-gray-50 rounded-lg">
+              <p class="text-gray-500">Loading transactions...</p>
+            </div>
+            <div v-else-if="transactions.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
+              <p class="text-gray-500">No transactions found for this Card ID</p>
             </div>
 
-            <div v-else>
-              <!-- Transactions table -->
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaction ID
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Merchant
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Category
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Payment Method
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="transaction in transactions" :key="transaction.id">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{{ transaction.id }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ formatDate(transaction.transactionDate) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ transaction.merchantName }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ transaction.category }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        ₹{{ transaction.amount.toFixed(2) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span 
-                          :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${isBNPL(transaction) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
-                        >
-                          {{ isBNPL(transaction) ? 'BNPL' : 'Paid in Full' }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span 
-                          :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${getStatusClass(transaction.status)}`"
-                        >
-                          {{ transaction.status }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          v-if="isBNPL(transaction)"
-                          @click="viewTransactionInstallments(transaction.id)"
-                          class="text-primary hover:text-primary-dark"
-                          :aria-label="`View Installments for Transaction ${transaction.id}`"
-                        >
-                          View Installments
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Transaction ID
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Merchant
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Method
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="transaction in transactions" :key="transaction.id">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{{ transaction.id }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ formatDate(transaction.transactionDate) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ transaction.merchantName || 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ transaction.category || 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      ₹{{ transaction.amount?.toFixed(2) || '0.00' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span 
+                        :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${transaction.isBNPL ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`"
+                      >
+                        {{ transaction.isBNPL ? 'BNPL' : 'Paid in Full' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span 
+                        :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${getStatusClass(transaction.status)}`"
+                      >
+                        {{ transaction.status || 'Unknown' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button 
+                        v-if="transaction.isBNPL"
+                        @click="viewTransactionInstallments(transaction.id)"
+                        class="text-primary hover:text-primary-dark"
+                        :aria-label="`View Installments for Transaction ${transaction.id}`"
+                      >
+                        View Installments
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-              <!-- Pagination -->
-              <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
-                <div class="flex-1 flex justify-between sm:hidden">
-                  <button 
-                    @click="prevPage" 
-                    :disabled="currentPage === 1"
-                    :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
-                            ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
-                    aria-label="Previous Page"
-                  >
-                    Previous
-                  </button>
-                  <button 
-                    @click="nextPage" 
-                    :disabled="currentPage === totalPages"
-                    :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
-                            ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
-                    aria-label="Next Page"
-                  >
-                    Next
-                  </button>
+            <!-- Pagination -->
+            <div v-if="transactions.length > 0" class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <button 
+                  @click="prevPage" 
+                  :disabled="currentPage === 1"
+                  :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
+                          ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
+                  aria-label="Previous Page"
+                >
+                  Previous
+                </button>
+                <button 
+                  @click="nextPage" 
+                  :disabled="currentPage === totalPages"
+                  :class="`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md
+                          ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`"
+                  aria-label="Next Page"
+                >
+                  Next
+                </button>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+                    <span class="font-medium">{{ Math.min(currentPage * pageSize, totalTransactions) }}</span> of 
+                    <span class="font-medium">{{ totalTransactions }}</span> results
+                  </p>
                 </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p class="text-sm text-gray-700">
-                      Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
-                      <span class="font-medium">{{ Math.min(currentPage * pageSize, totalTransactions) }}</span> of 
-                      <span class="font-medium">{{ totalTransactions }}</span> results
-                    </p>
-                  </div>
-                  <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <button 
-                        @click="prevPage" 
-                        :disabled="currentPage === 1"
-                        :class="`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
-                                ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
-                        aria-label="Previous Page"
-                      >
-                        <span class="sr-only">Previous</span>
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                      <button 
-                        v-for="page in paginationRange" 
-                        :key="page"
-                        @click="goToPage(page)"
-                        :class="`relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                                ${currentPage === page ? 'z-10 bg-primary border-primary text-white' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`"
-                        :aria-label="`Go to Page ${page}`"
-                      >
-                        {{ page }}
-                      </button>
-                      <button 
-                        @click="nextPage" 
-                        :disabled="currentPage === totalPages"
-                        :class="`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
-                                ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
-                        aria-label="Next Page"
-                      >
-                        <span class="sr-only">Next</span>
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                    </nav>
-                  </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button 
+                      @click="prevPage" 
+                      :disabled="currentPage === 1"
+                      :class="`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
+                              ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
+                      aria-label="Previous Page"
+                    >
+                      <span class="sr-only">Previous</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    <button 
+                      v-for="page in paginationRange" 
+                      :key="page"
+                      @click="goToPage(page)"
+                      :class="`relative inline-flex items-center px-4 py-2 border text-sm font-medium
+                              ${currentPage === page ? 'z-10 bg-primary border-primary text-white' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`"
+                      :aria-label="`Go to Page ${page}`"
+                    >
+                      {{ page }}
+                    </button>
+                    <button 
+                      @click="nextPage" 
+                      :disabled="currentPage === totalPages"
+                      :class="`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
+                              ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`"
+                      aria-label="Next Page"
+                    >
+                      <span class="sr-only">Next</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
                 </div>
               </div>
             </div>
@@ -786,20 +803,29 @@ import { ref, computed, onMounted } from 'vue';
 const steps = ['Transaction Details', 'Payment Options', 'Confirmation', 'Complete', 'My Installments', 'Transaction History'];
 const currentStep = ref(0);
 const loading = ref(false);
-const installmentsFetched = ref(false);
 const errorMessage = ref('');
 
-// Transaction form data
-const transaction = ref({
-  cardId: '',
-  amount: '',
-  category: '',
-  merchant: '',
-  isBNPL: false,
-  installmentPlan: ''
+// localStorage data
+const fullName = ref(localStorage.getItem('fullName') || 'User');
+const userId = ref(localStorage.getItem('userId') || '');
+const recentTransactions = computed(() => {
+  try {
+    return JSON.parse(localStorage.getItem('recentTransactions') || '[]');
+  } catch {
+    return [];
+  }
 });
 
-// Predefined categories and merchants for dropdowns
+// Transaction form data (aligned with TransactionCreateDTO)
+const transaction = ref({
+  cardId: recentTransactions.value[0]?.cardId?.toString() || '',
+  amount: '',
+  category: '',
+  merchantName: '',
+  isBNPL: false
+});
+
+// Predefined categories and merchants
 const categories = ref([
   'Electronics',
   'Clothing',
@@ -819,7 +845,7 @@ const merchants = ref([
   'Other'
 ]);
 
-// Plan mapping
+// Plan mapping to backend InstallmentPlan enum
 const planMapping = {
   3: 'THREE',
   6: 'SIX',
@@ -845,13 +871,13 @@ const installmentPlans = ref([
 
 // Installment management
 const installments = ref([]);
-const searchCardId = ref('');
 const searchTransactionId = ref('');
 const installmentFilter = ref('all');
-const displayedInstallments = ref([]); 
+const displayedInstallments = ref([]);
 
 // Transaction history
 const transactions = ref([]);
+const searchCardId = ref('');
 const transactionFilter = ref('all');
 const dateFilter = ref({
   from: '',
@@ -881,7 +907,7 @@ const paginationRange = computed(() => {
 const groupedDisplayedInstallments = computed(() => {
   const groups = {};
   displayedInstallments.value.forEach(i => {
-    const transId = i.transaction?.id || i.transactionId || searchTransactionId.value || 'Unknown';
+    const transId = i.transactionId || searchTransactionId.value || 'Unknown';
     if (!groups[transId]) groups[transId] = [];
     groups[transId].push(i);
   });
@@ -890,12 +916,8 @@ const groupedDisplayedInstallments = computed(() => {
 
 // Computed properties
 const canProceed = computed(() => {
-  if (selectedPaymentMethod.value === 'full') {
-    return true;
-  }
-  if (selectedPaymentMethod.value === 'bnpl') {
-    return selectedPlan.value !== null;
-  }
+  if (selectedPaymentMethod.value === 'full') return true;
+  if (selectedPaymentMethod.value === 'bnpl') return selectedPlan.value !== null;
   return false;
 });
 
@@ -915,55 +937,72 @@ const calculatedInstallments = computed(() => {
     
     installments.push({
       amount: installmentAmount,
-      dueDate: dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-      isPaid: false
+      dueDate: dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
     });
   }
   
   return installments;
 });
 
-// Helper function to safely handle isBNPL
-const isBNPL = (transaction) => transaction.isBNPL ?? false;
-
 // Methods
 const checkEligibility = async () => {
   if (!transaction.value.cardId || !/^\d+$/.test(transaction.value.cardId)) {
-    alert('Please enter a valid numeric Card ID');
+    errorMessage.value = 'Please enter a valid numeric Card ID';
     return;
   }
   if (!transaction.value.amount || parseFloat(transaction.value.amount) <= 0) {
-    alert('Please enter a valid amount greater than 0');
+    errorMessage.value = 'Please enter a valid amount greater than 0';
     return;
   }
-  if (!transaction.value.merchant) {
-    alert('Please select a merchant');
+  if (!transaction.value.merchantName) {
+    errorMessage.value = 'Please select a merchant';
     return;
   }
   if (!transaction.value.category) {
-    alert('Please select a transaction category');
+    errorMessage.value = 'Please select a transaction category';
     return;
   }
 
   loading.value = true;
+  errorMessage.value = '';
 
   try {
+    console.log(`Checking eligibility for userId: ${userId.value}, cardId: ${transaction.value.cardId}`);
     const response = await fetch(`http://localhost:8089/api/profile/${transaction.value.cardId}/bnpl-eligibility`);
+    console.log(`Eligibility API status: ${response.status}`);
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Eligibility check failed: ${response.status}`);
+      console.error('Eligibility check failed:', errorData);
+      if (response.status === 403) {
+        eligibilityResult.value = { eligible: false, message: errorData.message || 'You are not eligible for BNPL.' };
+      } else if (response.status === 404) {
+        eligibilityResult.value = { eligible: false, message: 'Card not found.' };
+      } else {
+        throw new Error(errorData.message || `Eligibility check failed: ${response.status}`);
+      }
+    } else {
+      const data = await response.json();
+      console.log('Eligibility response:', data);
+      if (data && typeof data.isEligibleForBNPL !== 'undefined') {
+        eligibilityResult.value = {
+          eligible: data.isEligibleForBNPL,
+          message: data.isEligibleForBNPL ? 'Eligible for BNPL.' : 'Not eligible for BNPL.'
+        };
+        // Check userId mismatch
+        if (data.userId && data.userId.toString() !== userId.value) {
+          console.warn(`User ID mismatch: API returned userId ${data.userId}, but localStorage has ${userId.value}`);
+          errorMessage.value = `User ID mismatch detected. Please ensure you are using the correct account.`;
+        }
+      } else {
+        throw new Error('Invalid eligibility response format');
+      }
     }
-    const data = await response.json();
-    eligibilityResult.value = data;
-    currentStep.value = 1;
-    errorMessage.value = '';
+    currentStep.value = eligibilityResult.value.eligible ? 1 : 1;
   } catch (error) {
-    console.error('Error checking eligibility:', {
-      message: error.message,
-      status: error.response?.status
-    });
-    alert(`Error checking eligibility: ${error.message}`);
-    errorMessage.value = error.message;
+    console.error('Eligibility check error:', error);
+    errorMessage.value = `Error checking eligibility: ${error.message}`;
+    eligibilityResult.value = { eligible: false, message: error.message };
   } finally {
     loading.value = false;
   }
@@ -972,16 +1011,13 @@ const checkEligibility = async () => {
 const selectPaymentMethod = (method) => {
   selectedPaymentMethod.value = method;
   transaction.value.isBNPL = method === 'bnpl';
-  console.log('Payment method selected:', method, 'isBNPL:', transaction.value.isBNPL); // Debug log
   if (method === 'full') {
     selectedPlan.value = null;
-    transaction.value.installmentPlan = '';
   }
 };
 
 const selectInstallmentPlan = (plan) => {
   selectedPlan.value = plan;
-  transaction.value.installmentPlan = planMapping[plan.months];
 };
 
 const proceedToConfirmation = () => {
@@ -993,179 +1029,95 @@ const proceedToPayInFull = () => {
   selectedPaymentMethod.value = 'full';
   transaction.value.isBNPL = false;
   selectedPlan.value = null;
-  transaction.value.installmentPlan = '';
-  console.log('Proceeding to pay in full, isBNPL:', transaction.value.isBNPL); // Debug log
   currentStep.value = 2;
 };
 
 const confirmTransaction = async () => {
   loading.value = true;
+  errorMessage.value = '';
+
   const payload = {
     cardId: parseInt(transaction.value.cardId),
     amount: parseFloat(transaction.value.amount),
     category: transaction.value.category,
-    merchantName: transaction.value.merchant,
-    isBNPL: transaction.value.isBNPL,
-    installmentPlan: transaction.value.installmentPlan || 'THREE'
+    merchantName: transaction.value.merchantName,
+    isBNPL: transaction.value.isBNPL
   };
-  console.log('Confirming transaction with payload:', payload); // Debug log
+
   try {
-    // Use /transactions/bnpl for BNPL transactions, /transactions for regular
-    const endpoint = payload.isBNPL 
-      ? `http://localhost:8089/transactions/bnpl?plan=${payload.installmentPlan}`
+    const endpoint = transaction.value.isBNPL 
+      ? `http://localhost:8089/transactions/bnpl?plan=${planMapping[selectedPlan.value.months]}`
       : `http://localhost:8089/transactions`;
     
+    console.log(`Confirming transaction with payload:`, payload, `to endpoint: ${endpoint}`);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Transaction failed:', errorData);
       throw new Error(errorData.message || `Transaction failed: ${response.status}`);
     }
+
     const savedTransaction = await response.json();
-    console.log('Saved transaction:', JSON.stringify(savedTransaction, null, 2)); // Updated debug log
-    transactions.value.unshift(savedTransaction);
+    console.log('Saved transaction:', savedTransaction);
+    transactions.value.unshift({
+      ...savedTransaction,
+      isBNPL: savedTransaction.isBNPL ?? savedTransaction.bnpl ?? false
+    });
     totalTransactions.value++;
+    localStorage.setItem('recentTransactions', JSON.stringify([
+      ...recentTransactions.value,
+      { ...savedTransaction, isBNPL: savedTransaction.isBNPL ?? savedTransaction.bnpl ?? false }
+    ].slice(-10))); // Keep last 10 transactions
     currentStep.value = 3;
-    errorMessage.value = '';
   } catch (error) {
-    console.error('Error confirming transaction:', {
-      message: error.message,
-      payload,
-      status: error.response?.status
-    });
-    alert(`Error processing transaction: ${error.message}`);
-    errorMessage.value = error.message;
+    console.error('Confirm transaction error:', error);
+    errorMessage.value = `Error processing transaction: ${error.message}`;
   } finally {
     loading.value = false;
   }
 };
 
-const viewInstallments = async () => {
-  const transId = prompt('Enter Transaction ID to view installments:');
-  if (!transId || !/^\d+$/.test(transId.trim())) {
-    alert('Please enter a valid numeric Transaction ID');
-    return;
-  }
-  const transactionId = parseInt(transId.trim());
-  loading.value = true;
-  errorMessage.value = '';
-
-  try {
-    const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transactionId}`);
-    if (!response.ok) {
-      let errorMsg = 'Failed to fetch installments';
-      if (response.status === 404) {
-        errorMsg = 'No installments found for this Transaction ID';
-      } else {
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } catch {
-          errorMsg = `Failed to fetch installments: ${response.status} ${response.statusText}`;
-        }
-      }
-      throw new Error(errorMsg);
-    }
-    const data = await response.json();
-    console.log('Installments for transaction', transactionId, ':', data); // Debug log
-    const enrichedData = data.map(installment => ({
-      ...installment,
-      transactionId: installment.transaction?.id || transactionId
-    }));
-    installments.value = enrichedData;
-    displayedInstallments.value = enrichedData;
-    installmentsFetched.value = enrichedData.length > 0;
-    searchTransactionId.value = transactionId.toString();
-    installmentFilter.value = 'all';
-    currentStep.value = 4;
-    errorMessage.value = enrichedData.length === 0 ? 'No installments found for this Transaction ID' : '';
-  } catch (error) {
-    console.error('Error fetching installments:', {
-      message: error.message,
-      transactionId,
-      status: error.response?.status
-    });
-    alert(error.message);
-    displayedInstallments.value = [];
-    installments.value = [];
-    installmentsFetched.value = false;
-    errorMessage.value = error.message;
-  } finally {
-    loading.value = false;
-  }
-};
-
-const viewTransactionHistory = () => {
-  searchCardId.value = transaction.value.cardId || searchCardId.value;
-  fetchTransactions();
-  currentStep.value = 5;
+const goToInstallments = () => {
+  console.log('Navigating to Installments view');
+  searchTransactionId.value = ''; // Clear previous input
+  currentStep.value = 4;
 };
 
 const viewTransactionInstallments = async (id) => {
   if (!id) {
-    alert('Invalid Transaction ID');
+    errorMessage.value = 'Invalid Transaction ID';
+    console.error('Invalid Transaction ID:', id);
     return;
   }
-  loading.value = true;
-  errorMessage.value = '';
+  console.log(`Viewing installments for transaction ID: ${id}`);
+  searchTransactionId.value = id.toString();
+  await fetchInstallments();
+};
 
-  try {
-    const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${id}`);
-    if (!response.ok) {
-      let errorMsg = 'Failed to fetch installments';
-      if (response.status === 404) {
-        errorMsg = 'No installments found for this Transaction ID';
-      } else {
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } catch {
-          errorMsg = `Failed to fetch installments: ${response.status} ${response.statusText}`;
-        }
-      }
-      throw new Error(errorMsg);
-    }
-    const data = await response.json();
-    console.log('Installments for transaction', id, ':', data); // Debug log
-    const enrichedData = data.map(installment => ({
-      ...installment,
-      transactionId: installment.transaction?.id || id
-    }));
-    installments.value = enrichedData;
-    displayedInstallments.value = enrichedData;
-    installmentsFetched.value = enrichedData.length > 0;
-    searchTransactionId.value = id.toString();
-    installmentFilter.value = 'all';
-    currentStep.value = 4;
-    errorMessage.value = enrichedData.length === 0 ? 'No installments found for this Transaction ID' : '';
-  } catch (error) {
-    console.error('Error fetching installments:', {
-      message: error.message,
-      transactionId: id,
-      status: error.response?.status
-    });
-    alert(error.message);
-    displayedInstallments.value = [];
-    installments.value = [];
-    installmentsFetched.value = false;
-    errorMessage.value = error.message;
-  } finally {
-    loading.value = false;
+const viewTransactionHistory = () => {
+  console.log('Navigating to Transaction History view with cardId:', transaction.value.cardId);
+  searchCardId.value = transaction.value.cardId || recentTransactions.value[0]?.cardId?.toString() || '';
+  if (!searchCardId.value) {
+    errorMessage.value = 'No Card ID available. Please enter a Card ID.';
+    return;
   }
+  fetchTransactions();
+  currentStep.value = 5;
 };
 
 const resetForm = () => {
   currentStep.value = 0;
   transaction.value = {
-    cardId: '',
+    cardId: recentTransactions.value[0]?.cardId?.toString() || '',
     amount: '',
     category: '',
-    merchant: '',
-    isBNPL: false,
-    installmentPlan: ''
+    merchantName: '',
+    isBNPL: false
   };
   eligibilityResult.value = {
     eligible: false,
@@ -1176,145 +1128,87 @@ const resetForm = () => {
   searchTransactionId.value = '';
   displayedInstallments.value = [];
   installments.value = [];
-  installmentsFetched.value = false;
   errorMessage.value = '';
+  transactions.value = [];
+  searchCardId.value = transaction.value.cardId;
 };
 
 const fetchInstallments = async () => {
   if (!searchTransactionId.value || !/^\d+$/.test(searchTransactionId.value.trim())) {
-    alert('Please enter a valid numeric Transaction ID');
+    errorMessage.value = 'Please enter a valid numeric Transaction ID';
+    console.error('Invalid Transaction ID:', searchTransactionId.value);
     return;
   }
   const transactionId = parseInt(searchTransactionId.value.trim());
+  console.log(`Fetching installments for transaction ID: ${transactionId}`);
   loading.value = true;
   errorMessage.value = '';
 
   try {
     const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transactionId}`);
+    console.log(`Installments API status: ${response.status}`);
     if (!response.ok) {
       let errorMsg = 'Failed to fetch installments';
       if (response.status === 404) {
         errorMsg = 'No installments found for this Transaction ID';
       } else {
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } catch {
-          errorMsg = `Failed to fetch installments: ${response.status} ${response.statusText}`;
-        }
+        const errorData = await response.json().catch(() => ({}));
+        errorMsg = errorData.message || errorMsg;
       }
       throw new Error(errorMsg);
     }
     const data = await response.json();
-    console.log('Installments for transaction', transactionId, ':', data); // Debug log
-    const enrichedData = data.map(installment => ({
-      ...installment,
-      transactionId: installment.transaction?.id || transactionId
-    }));
-    installments.value = enrichedData;
-    displayedInstallments.value = enrichedData;
-    installmentsFetched.value = enrichedData.length > 0;
+    console.log('Installments response:', data);
+    installments.value = data;
+    displayedInstallments.value = data;
     installmentFilter.value = 'all';
-    currentStep.value = 4;
-    errorMessage.value = enrichedData.length === 0 ? 'No installments found for this Transaction ID' : '';
+    errorMessage.value = data.length === 0 ? 'No installments found for this Transaction ID' : '';
   } catch (error) {
-    console.error('Error fetching installments:', {
-      message: error.message,
-      transactionId,
-      status: error.response?.status
-    });
-    alert(error.message);
+    console.error('Fetch installments error:', error);
+    errorMessage.value = error.message;
     displayedInstallments.value = [];
     installments.value = [];
-    installmentsFetched.value = false;
-    errorMessage.value = error.message;
   } finally {
     loading.value = false;
   }
 };
 
-// const fetchTransactions = async () => {
-//   if (!searchCardId.value || !/^\d+$/.test(searchCardId.value.trim())) {
-//     alert('Please enter a valid numeric Card ID');
-//     return;
-//   }
-//   loading.value = true;
-//   errorMessage.value = '';
-
-//   try {
-//     const response = await fetch(`http://localhost:8089/transactions/card/${searchCardId.value.trim()}`, {
-//       method: 'GET',
-//       headers: { 'Content-Type': 'application/json' }
-//     });
-//     if (!response.ok) {
-//       const errorData = await response.json().catch(() => ({}));
-//       throw new Error(errorData.message || `Failed to fetch transactions: ${response.status}`);
-//     }
-//     const rawTransactions = await response.json();
-//     console.log('Raw transactions response:', JSON.stringify(rawTransactions, null, 2)); // Debug raw response
-//     let filteredTransactions = rawTransactions.map(t => ({
-//       ...t,
-//       isBNPL: t.isBNPL ?? false // Ensure isBNPL is boolean
-//     }));
-//     console.log('Processed transactions:', JSON.stringify(filteredTransactions, null, 2)); // Debug processed data
-//     if (transactionFilter.value !== 'all') {
-//       filteredTransactions = filteredTransactions.filter(t => isBNPL(t) === (transactionFilter.value === 'bnpl'));
-//     }
-//     if (dateFilter.value.from) {
-//       const fromDate = new Date(dateFilter.value.from);
-//       filteredTransactions = filteredTransactions.filter(t => new Date(t.transactionDate) >= fromDate);
-//     }
-//     if (dateFilter.value.to) {
-//       const toDate = new Date(dateFilter.value.to);
-//       toDate.setHours(23, 59, 59, 999);
-//       filteredTransactions = filteredTransactions.filter(t => new Date(t.transactionDate) <= toDate);
-//     }
-//     totalTransactions.value = filteredTransactions.length;
-//     const start = (currentPage.value - 1) * pageSize;
-//     const end = start + pageSize;
-//     transactions.value = filteredTransactions.slice(start, end);
-//     console.log('Displayed transactions:', JSON.stringify(transactions.value, null, 2)); // Debug displayed data
-//     errorMessage.value = filteredTransactions.length === 0 ? 'No transactions found for this Card ID' : '';
-//   } catch (error) {
-//     console.error('Error fetching transactions:', {
-//       message: error.message,
-//       cardId: searchCardId.value,
-//       status: error.response?.status
-//     });
-//     alert(`Error fetching transactions: ${error.message}`);
-//     transactions.value = [];
-//     totalTransactions.value = 0;
-//     errorMessage.value = error.message;
-//   } finally {
-//     loading.value = false;
-//   }
-// };
 const fetchTransactions = async () => {
   if (!searchCardId.value || !/^\d+$/.test(searchCardId.value.trim())) {
-    alert('Please enter a valid numeric Card ID');
+    errorMessage.value = 'Please enter a valid numeric Card ID';
+    console.error('Invalid Card ID:', searchCardId.value);
     return;
   }
+  const cardId = searchCardId.value.trim();
+  console.log(`Fetching transactions for card ID: ${cardId}`);
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8089/transactions/card/${searchCardId.value.trim()}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const response = await fetch(`http://localhost:8089/transactions/card/${cardId}`);
+    console.log(`Transactions API status: ${response.status}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch transactions: ${response.status}`);
+      console.error('Fetch transactions failed:', errorData);
+      let errorMsg = errorData.message || `Failed to fetch transactions: ${response.status}`;
+      if (response.status === 404) {
+        errorMsg = 'No transactions found for this Card ID';
+      }
+      throw new Error(errorMsg);
     }
-    const rawTransactions = await response.json();
-    console.log('Raw transactions response:', JSON.stringify(rawTransactions, null, 2)); // Debug raw response
-    let filteredTransactions = rawTransactions.map(t => ({
+    let filteredTransactions = await response.json();
+    console.log('Transactions response:', filteredTransactions);
+    filteredTransactions = filteredTransactions.map(t => ({
       ...t,
-      isBNPL: t.bnpl ?? false // Map bnpl to isBNPL
+      isBNPL: t.isBNPL ?? t.bnpl ?? false,
+      amount: parseFloat(t.amount) || 0,
+      merchantName: t.merchantName || 'N/A',
+      category: t.category || 'N/A',
+      status: t.status || 'Unknown',
+      transactionDate: t.transactionDate || new Date().toISOString()
     }));
-    console.log('Processed transactions:', JSON.stringify(filteredTransactions, null, 2)); // Debug processed data
     if (transactionFilter.value !== 'all') {
-      filteredTransactions = filteredTransactions.filter(t => isBNPL(t) === (transactionFilter.value === 'bnpl'));
+      filteredTransactions = filteredTransactions.filter(t => t.isBNPL === (transactionFilter.value === 'bnpl'));
     }
     if (dateFilter.value.from) {
       const fromDate = new Date(dateFilter.value.from);
@@ -1329,22 +1223,17 @@ const fetchTransactions = async () => {
     const start = (currentPage.value - 1) * pageSize;
     const end = start + pageSize;
     transactions.value = filteredTransactions.slice(start, end);
-    console.log('Displayed transactions:', JSON.stringify(transactions.value, null, 2)); // Debug displayed data
     errorMessage.value = filteredTransactions.length === 0 ? 'No transactions found for this Card ID' : '';
   } catch (error) {
-    console.error('Error fetching transactions:', {
-      message: error.message,
-      cardId: searchCardId.value,
-      status: error.response?.status
-    });
-    alert(`Error fetching transactions: ${error.message}`);
+    console.error('Fetch transactions error:', error);
+    errorMessage.value = error.message;
     transactions.value = [];
     totalTransactions.value = 0;
-    errorMessage.value = error.message;
   } finally {
     loading.value = false;
   }
 };
+
 const filterInstallments = (filter) => {
   installmentFilter.value = filter;
   if (filter === 'all') {
@@ -1361,11 +1250,13 @@ const filterInstallments = (filter) => {
 const filterTransactions = (filter) => {
   transactionFilter.value = filter;
   currentPage.value = 1;
+  console.log(`Applying transaction filter: ${filter}`);
   fetchTransactions();
 };
 
 const applyDateFilter = () => {
   currentPage.value = 1;
+  console.log('Applying date filter:', dateFilter.value);
   fetchTransactions();
 };
 
@@ -1374,12 +1265,14 @@ const clearDateFilter = () => {
     from: '',
     to: ''
   };
+  console.log('Clearing date filter');
   fetchTransactions();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    console.log('Navigating to previous page:', currentPage.value);
     fetchTransactions();
   }
 };
@@ -1387,18 +1280,21 @@ const prevPage = () => {
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    console.log('Navigating to next page:', currentPage.value);
     fetchTransactions();
   }
 };
 
 const goToPage = (page) => {
   currentPage.value = page;
+  console.log('Navigating to page:', page);
   fetchTransactions();
 };
 
 const payInstallment = async (installment) => {
   if (!installment?.id || !installment?.amount) {
-    alert('Invalid installment data');
+    errorMessage.value = 'Invalid installment data';
+    console.error('Invalid installment data:', installment);
     return;
   }
   if (!confirm(`Pay installment #${installment.id} of ₹${installment.amount.toFixed(2)}?`)) return;
@@ -1407,55 +1303,24 @@ const payInstallment = async (installment) => {
   errorMessage.value = '';
 
   try {
-    const amount = parseFloat(installment.amount.toFixed(2));
+    console.log(`Paying installment ID: ${installment.id}, amount: ${installment.amount}`);
     const response = await fetch(
-      `http://localhost:8089/bnpl/installments/${installment.id}/pay?amount=${amount}`,
-      {
-        method: 'POST'
-      }
+      `http://localhost:8089/bnpl/installments/${installment.id}/pay?amount=${installment.amount}`,
+      { method: 'POST' }
     );
 
     if (!response.ok) {
-      let errorMsg = 'Payment failed';
-      try {
-        const errorData = await response.json();
-        errorMsg = errorData.message || errorMsg;
-      } catch {
-        errorMsg = `Payment failed: ${response.status} ${response.statusText}`;
-      }
-      throw new Error(errorMsg);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Pay installment failed:', errorData);
+      throw new Error(errorData.message || `Payment failed: ${response.status}`);
     }
 
-    const transId = installment.transaction?.id || installment.transactionId || searchTransactionId.value;
-    if (!transId) {
-      throw new Error('Transaction ID not found in installment data');
-    }
-    const res = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transId}`);
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to refetch installments');
-    }
-    const data = await res.json();
-    console.log('Raw installments response after payment:', data); // Debug log
-    const enrichedData = data.map(i => ({
-      ...i,
-      transactionId: i.transaction?.id || transId
-    }));
-    installments.value = enrichedData;
-    displayedInstallments.value = enrichedData;
-    installmentsFetched.value = enrichedData.length > 0;
-    filterInstallments(installmentFilter.value);
+    console.log('Installment payment successful');
+    await fetchInstallments();
     alert('Payment successful!');
-    errorMessage.value = enrichedData.length === 0 ? 'No installments found after payment' : '';
   } catch (error) {
-    console.error('Error paying installment:', {
-      message: error.message,
-      installmentId: installment.id,
-      amount: installment.amount,
-      status: error.response?.status
-    });
-    alert(`Payment failed: ${error.message}`);
-    errorMessage.value = error.message;
+    console.error('Pay installment error:', error);
+    errorMessage.value = `Payment failed: ${error.message}`;
   } finally {
     loading.value = false;
   }
@@ -1473,44 +1338,17 @@ const isOverdue = (dueDate) => {
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) {
-    return new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-  
-  let date;
+  if (!dateString) return 'N/A';
   try {
-    date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      const parts = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (parts) {
-        date = new Date(parts[1], parts[2] - 1, parts[3]);
-      } else {
-        console.warn(`Invalid date format: ${dateString}`);
-        return new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
-      }
-    }
-  } catch (error) {
-    console.warn(`Error parsing date: ${dateString}`, error);
-    return new Date().toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  } catch {
+    return 'N/A';
   }
-
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
 };
 
 const getStatusClass = (status) => {
@@ -1528,8 +1366,15 @@ const getStatusClass = (status) => {
   }
 };
 
+// Initialize cardId from localStorage
 onMounted(() => {
-  // Any initialization logic can go here
+  if (recentTransactions.value.length > 0) {
+    transaction.value.cardId = recentTransactions.value[0].cardId.toString();
+    searchCardId.value = transaction.value.cardId;
+    console.log('Initialized cardId from localStorage:', transaction.value.cardId);
+  } else {
+    console.warn('No recent transactions found in localStorage');
+  }
 });
 </script>
 
@@ -1540,35 +1385,12 @@ onMounted(() => {
   --color-primary-50: #eff6ff;
 }
 
-.bg-primary {
-  background-color: var(--color-primary);
-}
-
-.bg-primary-dark {
-  background-color: var(--color-primary-dark);
-}
-
-.bg-primary-50 {
-  background-color: var(--color-primary-50);
-}
-
-.text-primary {
-  color: var(--color-primary);
-}
-
-.border-primary {
-  border-color: var(--color-primary);
-}
-
-.focus\:ring-primary:focus {
-  --tw-ring-color: var(--color-primary);
-}
-
-.focus\:border-primary:focus {
-  border-color: var(--color-primary);
-}
-
-.hover\:bg-primary-dark:hover {
-  background-color: var(--color-primary-dark);
-}
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-dark { background-color: var(--color-primary-dark); }
+.bg-primary-50 { background-color: var(--color-primary-50); }
+.text-primary { color: var(--color-primary); }
+.border-primary { border-color: var(--color-primary); }
+.focus\:ring-primary:focus { --tw-ring-color: var(--color-primary); }
+.focus\:border-primary:focus { border-color: var(--color-primary); }
+.hover\:bg-primary-dark:hover { background-color: var(--color-primary-dark); }
 </style>
