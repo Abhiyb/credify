@@ -27,5 +27,7 @@ public class CardApplication {
     private LocalDate applicationDate;
 
     private String status;
-
+    public void setApplicationId(Long applicationId) {
+        this.id = applicationId;
+    }
 }

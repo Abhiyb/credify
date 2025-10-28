@@ -316,7 +316,7 @@ const validateResetPasswordForm = () => {
 
 const fetchUserFullName = async (userId) => {
   try {
-    const response = await axios.get('http://localhost:8089/api/profile');
+    const response = await axios.get('http://localhost:8080/api/profile');
     const users = response.data;
     const user = users.find(user => user.userId === parseInt(userId));
     return user ? user.fullName : null;
@@ -331,7 +331,7 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.post('http://localhost:8089/api/profile/login', {
+    const response = await axios.post('http://localhost:8080/api/profile/login', {
       email: loginForm.email,
       password: loginForm.password,
     });
@@ -371,7 +371,7 @@ const handleForgotPassword = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.get('http://localhost:8089/api/profile');
+    const response = await axios.get('http://localhost:8080/api/profile');
     const users = response.data;
     const user = users.find(user => user.email === forgotPasswordForm.email);
 
@@ -395,7 +395,7 @@ const handleResetPassword = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.put(`http://localhost:8089/api/profile/${userId.value}/password`, {
+    const response = await axios.put(`http://localhost:8080/api/profile/${userId.value}/password`, {
       password: resetPasswordForm.newPassword,
     });
 

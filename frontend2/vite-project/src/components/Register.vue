@@ -446,7 +446,7 @@ const handleRegister = async () => {
   };
 
   try {
-    const response = await fetch('http://localhost:8089/api/profile', {
+    const response = await fetch('http://localhost:8080/api/profile', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

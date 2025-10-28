@@ -75,7 +75,7 @@ import { useRouter } from 'vue-router';
 import Navbar from './Navbar.vue';
 
 const router = useRouter();
-const API_BASE_URL = 'http://localhost:8089';
+const API_BASE_URL = 'http://localhost:8080';
 
 const loading = ref(false);
 

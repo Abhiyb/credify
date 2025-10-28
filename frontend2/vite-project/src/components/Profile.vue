@@ -320,7 +320,7 @@ export default {
     async fetchProfile() {
       this.loading = true;
       try {
-        const response = await fetch(`http://localhost:8089/api/profile/${this.userId}`, {
+        const response = await fetch(`http://localhost:8080/api/profile/${this.userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -393,7 +393,7 @@ export default {
 
       this.updating = true;
       try {
-        const response = await fetch(`http://localhost:8089/api/profile/${this.userId}`, {
+        const response = await fetch(`http://localhost:8080/api/profile/${this.userId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cards")
 @RequiredArgsConstructor
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("http://localhost:3000")
 @Slf4j
 public class CardController {
 

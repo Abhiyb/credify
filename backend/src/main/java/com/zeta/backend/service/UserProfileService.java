@@ -58,6 +58,19 @@ public class UserProfileService implements IUserProfileService {
             throw new RuntimeException("User profile not found");
         }
     }
+
+    // Delete user profile by userId
+    @Override
+    public void deleteProfile(Long userId) {
+        log.info("Deleting user profile for userId: {}", userId);
+        if (!userProfileRepository.existsById(userId)) {
+            log.warn("User profile not found for delete. userId: {}", userId);
+            throw new RuntimeException("User profile not found");
+        }
+        userProfileRepository.deleteById(userId);
+        log.info("User profile deleted successfully for userId: {}", userId);
+    }
+
     // Update user password
     @Override
     public void updatePassword(Long userId, String newPassword) {

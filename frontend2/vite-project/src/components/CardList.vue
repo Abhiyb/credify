@@ -140,7 +140,7 @@ import Navbar from './Navbar.vue';
 import CardLimitModal from '../components/ManageLimit.vue';
 
 const router = useRouter();
-const API_BASE_URL = 'http://localhost:8089';
+const API_BASE_URL = 'http://localhost:8080';
 
 // Reactive variables
 const cards = ref([]);

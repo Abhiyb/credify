@@ -22,7 +22,7 @@ import java.util.List;
 @RequestMapping("/api/bnpl/installments")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:3000")
 public class BNPLPaymentController {
 
     private final IBNPLPaymentService bnplPaymentService;
@@ -34,6 +34,7 @@ public class BNPLPaymentController {
      * @return ResponseEntity with BNPLInstallmentResponseDTO.
      * @throws BadRequestException if amount is invalid.
      */
+
     @PostMapping("/{id}/pay")
     public ResponseEntity<BNPLInstallmentResponseDTO> payInstallment(
             @PathVariable Long id,

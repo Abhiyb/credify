@@ -2,7 +2,7 @@
   <div>
     <!-- Navigation -->
     <nav :class="[
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300', 
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
       scrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-6'
     ]">
       <div class="container mx-auto px-6 flex items-center justify-between">
@@ -46,7 +46,7 @@
     <section class="pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden">
       <div class="container mx-auto px-6">
         <div class="flex flex-col lg:flex-row items-center">
-          <div 
+          <div
             class="w-full lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0"
             :class="{ 'opacity-100 translate-x-0': isHeroLoaded, 'opacity-0 -translate-x-8': !isHeroLoaded }"
           >
@@ -66,7 +66,7 @@
             </div>
           </div>
 
-          <div 
+          <div
             class="w-full lg:w-1/2"
             :class="{ 'opacity-100 translate-x-0': isHeroLoaded, 'opacity-0 translate-x-8': !isHeroLoaded }"
           >
@@ -129,8 +129,8 @@
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div 
-            v-for="(feature, index) in features" 
+          <div
+            v-for="(feature, index) in features"
             :key="index"
             class="bg-white p-6 rounded-xl shadow-lg transition-all duration-500 hover:scale-105"
             :class="{ 'opacity-100 translate-y-0': isFeaturesInView, 'opacity-0 translate-y-10': !isFeaturesInView }"
@@ -169,7 +169,7 @@
     <section id="dashboard" class="py-20 overflow-hidden" ref="dashboardRef">
       <div class="container mx-auto px-6">
         <div class="flex flex-col lg:flex-row items-center">
-          <div 
+          <div
             class="w-full lg:w-3/5 relative mb-16 lg:mb-0"
             :class="{ 'opacity-100 translate-x-0': isDashboardInView, 'opacity-0 -translate-x-8': !isDashboardInView }"
           >
@@ -253,7 +253,7 @@
             </div>
             <div class="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-blue-100 opacity-70 blur-3xl -z-10"></div>
           </div>
-          <div 
+          <div
             class="w-full lg:w-2/5 lg:pl-16"
             :class="{ 'opacity-100 translate-x-0': isDashboardInView, 'opacity-0 translate-x-8': !isDashboardInView }"
           >
@@ -317,7 +317,7 @@
     <!-- CTA Section -->
     <section id="pricing" class="py-20" ref="ctaRef">
       <div class="container mx-auto px-6">
-        <div 
+        <div
           class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl overflow-hidden"
           :class="{ 'opacity-100 scale-100': isCtaInView, 'opacity-0 scale-95': !isCtaInView }"
         >
@@ -346,7 +346,7 @@
     </section>
 
     <ChatWidget/>
-    
+
   </div>
 </template>
 

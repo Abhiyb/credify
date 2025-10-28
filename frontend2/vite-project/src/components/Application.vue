@@ -145,7 +145,7 @@ const fetchApplications = async () => {
   errorMsg.value = null;
   
   try {
-    const res = await axios.get(`http://localhost:8089/cards/applications/${userId.value}`);
+    const res = await axios.get(`http://localhost:8080/cards/applications/${userId.value}`);
     applications.value = res.data || [];
   } catch (error) {
     console.error('Error fetching applications:', error);

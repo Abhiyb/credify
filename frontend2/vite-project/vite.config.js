@@ -10,7 +10,7 @@ server: {
   port: 3000,
   proxy: {
     '/api': {
-      target: 'http://localhost:8089', // use local Spring Boot port
+      target: 'http://localhost:8080', // use local Spring Boot port
       changeOrigin: true
     }
   }

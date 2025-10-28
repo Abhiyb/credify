@@ -156,7 +156,8 @@
         requestedLimit: parseFloat(requestedLimit.value),
       }
   
-      const response = await axios.post('http://localhost:8089/cards/apply', payload)
+      console.log('Submitting application with payload:', payload)
+      const response = await axios.post('http://localhost:8080/cards/apply', payload)
   
       successMessage.value = `🎉 Your application for ${selectedCard.value.title} has been submitted successfully!`
       requestedLimit.value = ''

@@ -968,7 +968,7 @@ const checkEligibility = async () => {
 
   try {
     console.log(`Checking eligibility for userId: ${userId.value}, cardId: ${transaction.value.cardId}`);
-    const response = await fetch(`http://localhost:8089/api/profile/${transaction.value.cardId}/bnpl-eligibility`);
+    const response = await fetch(`http://localhost:8080/api/profile/${transaction.value.cardId}/bnpl-eligibility`);
     console.log(`Eligibility API status: ${response.status}`);
     
     if (!response.ok) {
@@ -1046,8 +1046,8 @@ const confirmTransaction = async () => {
 
   try {
     const endpoint = transaction.value.isBNPL 
-      ? `http://localhost:8089/transactions/bnpl?plan=${planMapping[selectedPlan.value.months]}`
-      : `http://localhost:8089/transactions`;
+      ? `http://localhost:8080/transactions/bnpl?plan=${planMapping[selectedPlan.value.months]}`
+      : `http://localhost:8080/transactions`;
     
     console.log(`Confirming transaction with payload:`, payload, `to endpoint: ${endpoint}`);
     const response = await fetch(endpoint, {
@@ -1145,7 +1145,7 @@ const fetchInstallments = async () => {
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8089/bnpl/installments/transaction/${transactionId}`);
+    const response = await fetch(`http://localhost:8080/bnpl/installments/transaction/${transactionId}`);
     console.log(`Installments API status: ${response.status}`);
     if (!response.ok) {
       let errorMsg = 'Failed to fetch installments';
@@ -1185,7 +1185,7 @@ const fetchTransactions = async () => {
   errorMessage.value = '';
 
   try {
-    const response = await fetch(`http://localhost:8089/transactions/card/${cardId}`);
+    const response = await fetch(`http://localhost:8080/transactions/card/${cardId}`);
     console.log(`Transactions API status: ${response.status}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -1305,7 +1305,7 @@ const payInstallment = async (installment) => {
   try {
     console.log(`Paying installment ID: ${installment.id}, amount: ${installment.amount}`);
     const response = await fetch(
-      `http://localhost:8089/bnpl/installments/${installment.id}/pay?amount=${installment.amount}`,
+      `http://localhost:8080/bnpl/installments/${installment.id}/pay?amount=${installment.amount}`,
       { method: 'POST' }
     );
 

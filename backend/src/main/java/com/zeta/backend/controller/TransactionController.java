@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:3000")
 public class TransactionController {
 
     private final ITransactionService transactionService;
