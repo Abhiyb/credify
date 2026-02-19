@@ -2,8 +2,6 @@
 
 A full-stack fintech web application that enables users to securely manage credit cards, apply for new cards, simulate regular and BNPL transactions, track installments, manage credit limits, and handle profile information — all with JWT-based authentication.
 
-Built as part of the **Zeta Software Development Foundation Program** to simulate real-world banking workflows with clean architecture, scalability, and security.
-
 ## Demo
 
 ## 🚀 Project Overview
