@@ -55,9 +55,6 @@ cd credit-card-management-portal
 
 
 
-
-## 📥 Installation
-
 ### Prerequisites
 - **Java JDK 17** or later
 - **Node.js v18.x** or later
@@ -65,6 +62,8 @@ cd credit-card-management-portal
 - **MySQL 8.x**
 - **Docker** and **Docker Compose**
 - **Git**
+
+
 
 ### Backend Setup
 1. Clone the repository:
@@ -79,17 +78,7 @@ cd credit-card-management-portal
    ```bash
    mvn install
    ```
-4. Configure MySQL connection in `src/main/resources/application.yml`:
-   ```yaml
-   spring:
-     datasource:
-       url: jdbc:mysql://localhost:3306/credit_card_portal
-       username: user
-       password: password
-     jpa:
-       hibernate:
-         ddl-auto: update
-   ```
+4. Configure MySQL connection in `src/main/resources/application.property file 
 5. Run the application:
    ```bash
    ./mvnw spring-boot:run
