@@ -1,35 +1,83 @@
-# 💳 Credit Card Management Portal
+# Credify — Credit Card & BNPL Simulation Platform
 
-**A secure, full-stack banking application** built for the Zeta Software Development Foundation Program.  
-Empowers users to manage credit cards, apply for new cards, simulate real-world transactions (regular + BNPL), track installments, manage credit limits, and handle late fees — all with JWT authentication and a modern responsive UI.
+Credify is a secure, full-stack fintech simulation platform built using Spring Boot and Vue 3.  
+It models real-world credit card operations including card lifecycle management, transaction processing, BNPL installment workflows, and automated late fee handling.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen?style=for-the-badge&logo=spring" alt="Spring Boot" />
-  <img src="https://img.shields.io/badge/Vue.js-3-%234FC08D?style=for-the-badge&logo=vue.js" alt="Vue 3" />
-  <img src="https://img.shields.io/badge/Tailwind%20CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql" alt="MySQL" />
-  <img src="https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker" alt="Docker" />
-</p>
+This project demonstrates production-style backend architecture, secure authentication, and clean financial workflow design.
 
+---
 
+## Overview
 
-## 📹 Demo Video
+Credify simulates how modern credit systems operate internally — from issuing a card to processing transactions and managing installment-based repayments.
 
+It is designed with scalability, modular architecture, and financial data integrity in mind.
 
+---
 
-## ✨ Key Features
+## Core Features
 
-- 🏦 **User Authentication** — Secure registration & login with JWT
-- 💳 **Credit Card Management** — View, block/unblock, update limits
-- 📝 **Card Applications** — Apply for VISA, Mastercard, RuPay, Amex
-- 💸 **Transaction Simulation** — Regular & BNPL (3/6/9 months plans)
-- 📊 **BNPL Installment Tracking** — Pay, view pending/overdue, late fee calculation
-- 🔒 **Profile Management** — Update personal & financial details
-- 📈 **Transaction History** — Filter by date, type, merchant
-- 🖥️ **Responsive UI** — Works beautifully on mobile, tablet, desktop
-- 🐳 **Dockerized** — One-command full-stack deployment
+### Authentication & Security
+- Secure user registration and login
+- JWT-based stateless authentication
+- Protected API routes
 
-## 🛠️ Tech Stack
+### Credit Card Management
+- Apply for VISA, Mastercard, RuPay, or Amex
+- Activate, block, and manage cards
+- Update credit limits
+- Card lifecycle tracking
+
+### Transaction Engine
+- Regular transaction simulation
+- Credit limit validation before processing
+- Transaction history with filtering
+
+### BNPL Engine
+- 3 / 6 / 9 month installment plans
+- Automatic installment generation
+- Installment tracking (Paid / Pending / Overdue)
+- Late fee calculation for missed payments
+
+### Profile Management
+- Update personal and financial details
+- Eligibility flagging for BNPL
+
+---
+
+## System Architecture
+
+The application follows a layered backend architecture to ensure maintainability and scalability.
+
+### Backend
+- Spring Boot 3
+- Java 17
+- Controller → Service → Repository pattern
+- DTO mapping to prevent entity exposure
+- Global exception handling
+- ACID-compliant transactional operations
+- RESTful API design
+- Spring Security with JWT authentication
+
+### Frontend
+- Vue 3 (Composition API)
+- Vite
+- Axios-based API integration
+- Responsive UI design
+
+### Database
+- MySQL 8
+- Relational schema with foreign key constraints
+- Transactional data integrity
+
+### Deployment
+- Dockerized multi-container setup
+- Environment-based configuration
+- Isolated backend and database services
+
+---
+
+## Tech Stack
 
 | Layer          | Technology                          | Purpose                              |
 |----------------|-------------------------------------|--------------------------------------|
@@ -38,67 +86,44 @@ Empowers users to manage credit cards, apply for new cards, simulate real-world 
 | Frontend       | Vue 3 (Composition API), Vite       | Modern, reactive UI                  |
 | Styling        | Tailwind CSS                        | Fast, responsive design              |
 | Database       | MySQL 8                             | Persistent storage                   |
-| Container      | Docker + Docker Compose             | Easy local & production deployment   |
+| Container      | Docker + Docker Compose             | Local & production deployment        |
 
-## 🚀 Quick Start (Local Development)
+---
+
+## Key Workflows
+
+### Credit Card Transaction
+1. User initiates transaction  
+2. System validates available credit  
+3. Transaction is persisted  
+4. Credit utilization is updated  
+
+### BNPL Transaction
+1. User selects installment tenure  
+2. System validates eligibility  
+3. Installment schedule is generated  
+4. Monthly dues are tracked  
+5. Late fee applied if overdue  
+
+---
+
+## Demo
+
+Add demo video or GIF link here.
+
+---
+
+## Getting Started
 
 ### Prerequisites
+
 - Java 17+
 - Node.js 18+
 - MySQL 8+
-- Docker (optional but recommended)
+- Docker (optional)
 
-### 1. Clone the Repository
+### Clone Repository
+
 ```bash
 git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
 cd credit-card-management-portal
-
-
-
-### Prerequisites
-- **Java JDK 17** or later
-- **Node.js v18.x** or later
-- **npm** (Node Package Manager)
-- **MySQL 8.x**
-- **Docker** and **Docker Compose**
-- **Git**
-
-
-
-### Backend Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
-   ```
-2. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-3. Install dependencies:
-   ```bash
-   mvn install
-   ```
-4. Configure MySQL connection in `src/main/resources/application.property file 
-5. Run the application:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-### Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file and set the backend API URL:
-   ```env
-   VITE_API_BASE_URL=http://localhost:8080
-   ```
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
