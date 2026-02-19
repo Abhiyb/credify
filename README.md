@@ -4,14 +4,7 @@ A full-stack fintech web application that enables users to securely manage credi
 
 Built as part of the **Zeta Software Development Foundation Program** to simulate real-world banking workflows with clean architecture, scalability, and security.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Java_17-✓-007396?style=for-the-badge&logo=java&logoColor=white" alt="Java 17" />
-  <img src="https://img.shields.io/badge/Spring_Boot_3-✓-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 3" />
-  <img src="https://img.shields.io/badge/Vue_3-✓-41B883?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-✓-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/MySQL_8-✓-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8" />
-  <img src="https://img.shields.io/badge/Docker-✓-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-</p>
+## Demo
 
 ## 🚀 Project Overview
 
@@ -196,3 +189,22 @@ Protected endpoints require `Authorization: Bearer <token>` header.
 1. Clone the repository
    ```bash
    git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
+
+   Start MySQL & create database credit_card_portal
+Backend:Bashcd backend
+mvn clean install
+mvn spring-boot:run
+Frontend:Bashcd ../frontend
+npm install
+npm run dev
+Access: http://localhost:5173
+
+## Future Improvements
+Role-based access control (Admin / User)
+API rate limiting & throttling
+Refresh token implementation
+Email / SMS notifications for due payments
+CI/CD pipeline (GitHub Actions)
+Cloud deployment (AWS / Azure)
+Redis caching for frequent queries
+Microservices migration for high scalability
