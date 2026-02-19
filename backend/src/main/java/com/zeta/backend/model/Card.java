@@ -25,7 +25,9 @@ public class Card {
     private double creditLimit;   // Total credit limit assigned
     private double availableLimit; // Remaining credit available
     private LocalDate expiryDate; // Expiration date of the card
-
+    private String cvv;
+    private String expiryMonth;
+    private String expiryYear;
     @OneToOne
     @JoinColumn(name = "application_id")
     private CardApplication application; // One-to-one link with the card application that created this card
@@ -33,4 +35,5 @@ public class Card {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserProfile user; // Many cards can belong to a single user profile
+
 }

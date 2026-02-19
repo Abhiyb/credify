@@ -1,40 +1,22 @@
 package com.zeta.backend.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.*;
+import lombok.Data;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UserProfileUpdateDTO {
+
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
 
-    @Pattern(
-            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-            message = "Email should be valid",
-            groups = {ValidationGroups.Update.class}
-    )
-    private String email;
-
-    @Pattern(
-            regexp = "^\\d{10}$",
-            message = "Phone number must be 10 digits",
-            groups = {ValidationGroups.Update.class}
-    )
+    @Pattern(regexp = "^\\d{10}$", message = "Phone number must be exactly 10 digits")
     private String phone;
 
+    @Size(max = 500, message = "Address cannot exceed 500 characters")
     private String address;
 
-    @Positive(
-            message = "Annual income must be greater than 0",
-            groups = {ValidationGroups.Update.class}
-    )
+    @PositiveOrZero(message = "Annual income cannot be negative")
     private Double annualIncome;
 
-    private Boolean isEligibleForBNPL;
-
-    interface ValidationGroups {
-        interface Update {}
-    }
+    // NO email field here — we ignore it even if sent
 }

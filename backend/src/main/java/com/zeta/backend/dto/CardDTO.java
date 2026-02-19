@@ -28,4 +28,6 @@ public class CardDTO {
     private LocalDate expiryDate;    // Expiration date of the card
 
     private String cardHolderName;   // Full name of the person to whom the card is issued
+
+    private String cvv;   // ← Add this field
 }

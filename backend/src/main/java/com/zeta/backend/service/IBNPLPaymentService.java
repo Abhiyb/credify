@@ -8,79 +8,83 @@ import java.util.List;
 
 /**
  * Interface for BNPL installment service operations, managing installment payments and queries.
- * Provides methods for paying, retrieving, creating, updating, and deleting installments using DTOs
- * for secure data transfer. Aligns with BNPLInstallmentRepository for data access.
+ * Methods that require user ownership include `userEmail` for JWT-based authorization.
+ * Admin-level methods do not require `userEmail`.
  */
 public interface IBNPLPaymentService {
 
     /**
-     * Processes a payment for an installment, marking it as paid if the amount is valid.
-     * @param installmentId ID of the installment to pay.
-     * @param amount Payment amount provided by the client.
-     * @return BNPLInstallmentResponseDTO with updated installment details.
-     * @throws com.zeta.backend.exception.ResourceNotFoundException if installment is not found.
-     * @throws com.zeta.backend.exception.BadRequestException if payment amount is invalid or installment is already paid.
+     * Pay an installment.
+     * Only the owner of the card/transaction can pay.
+     * @param installmentId ID of the installment.
+     * @param amount Amount to pay.
+     * @param userEmail Email of the authenticated user (from JWT).
+     * @return Updated BNPLInstallmentResponseDTO.
      */
-    BNPLInstallmentResponseDTO payInstallment(Long installmentId, Double amount);
+    BNPLInstallmentResponseDTO payInstallment(Long installmentId, Double amount, String userEmail);
 
     /**
-     * Retrieves pending (unpaid) installments for a specific transaction, ordered by installment number.
-     * @param transactionId ID of the transaction to fetch pending installments for.
-     * @return List of BNPLInstallmentResponseDTOs representing unpaid installments.
+     * Fetch pending (unpaid) installments for a transaction.
+     * User can only fetch installments of their own transactions.
+     * @param transactionId Transaction ID.
+     * @param userEmail Email of the authenticated user (from JWT).
+     * @return List of pending installments.
      */
-    List<BNPLInstallmentResponseDTO> getPendingInstallmentsByTransactionId(Long transactionId);
+    List<BNPLInstallmentResponseDTO> getPendingInstallmentsByTransactionId(Long transactionId, String userEmail);
 
     /**
-     * Retrieves overdue installments for a specific card, where due date is before today and unpaid.
-     * @param cardId ID of the card to fetch overdue installments for.
-     * @return List of BNPLInstallmentResponseDTOs representing overdue installments.
+     * Fetch overdue installments for a card.
+     * User can only fetch installments of their own cards.
+     * @param cardId Card ID.
+     * @param userEmail Email of the authenticated user (from JWT).
+     * @return List of overdue installments.
      */
-    List<BNPLInstallmentResponseDTO> getOverdueInstallmentsByCardId(Long cardId);
+    List<BNPLInstallmentResponseDTO> getOverdueInstallmentsByCardId(Long cardId, String userEmail);
 
     /**
-     * Retrieves all installments in the system.
-     * @return List of BNPLInstallmentResponseDTOs for all installments.
+     * Admin-level method: Get all installments.
+     * No userEmail required.
+     * @return List of all installments.
      */
     List<BNPLInstallmentResponseDTO> getAllInstallments();
 
     /**
-     * Retrieves an installment by its ID.
-     * @param id ID of the installment to fetch.
-     * @return BNPLInstallmentResponseDTO with installment details.
-     * @throws com.zeta.backend.exception.ResourceNotFoundException if installment is not found.
+     * Get a specific installment by its ID.
+     * Admin-level or used internally.
+     * @param id Installment ID.
+     * @return BNPLInstallmentResponseDTO.
      */
     BNPLInstallmentResponseDTO getInstallmentById(Long id);
 
     /**
-     * Creates a new BNPL installment, typically for manual creation or testing.
-     * @param installment dto containing installment details (transaction ID, amount, due date, etc.).
-     * @return BNPLInstallmentResponseDTO with saved installment details.
-     * @throws com.zeta.backend.exception.ResourceNotFoundException if associated transaction is not found.
-     * @throws com.zeta.backend.exception.BadRequestException if installment data is invalid.
+     * Create a new installment.
+     * Admin-level or system-generated; no userEmail needed.
+     * @param installment DTO with installment details.
+     * @return Created BNPLInstallmentResponseDTO.
      */
     BNPLInstallmentResponseDTO createInstallment(BNPLInstallmentCreateDTO installment);
 
     /**
-     * Updates an existing BNPL installment with provided details.
-     * @param id ID of the installment to update.
-     * @param updated dto containing updated installment details.
-     * @return BNPLInstallmentResponseDTO with updated installment details.
-     * @throws com.zeta.backend.exception.ResourceNotFoundException if installment or transaction is not found.
-     * @throws com.zeta.backend.exception.BadRequestException if update data is invalid.
+     * Update an existing installment.
+     * Admin-level or system-generated; no userEmail needed.
+     * @param id Installment ID.
+     * @param updated DTO with updated data.
+     * @return Updated BNPLInstallmentResponseDTO.
      */
     BNPLInstallmentResponseDTO updateInstallment(Long id, BNPLInstallmentUpdateDTO updated);
 
     /**
-     * Deletes an existing BNPL installment.
-     * @param id ID of the installment to delete.
-     * @throws com.zeta.backend.exception.ResourceNotFoundException if installment is not found.
+     * Delete an installment.
+     * Admin-level or system-generated.
+     * @param id Installment ID.
      */
     void deleteInstallment(Long id);
 
     /**
-     * Retrieves all installments for a specific transaction.
-     * @param transactionId ID of the transaction to fetch installments for.
-     * @return List of BNPLInstallmentResponseDTOs representing all installments for the transaction.
+     * Fetch all installments for a specific transaction.
+     * Admin-level or internal use; no userEmail required.
+     * @param transactionId Transaction ID.
+     * @return List of installments.
      */
     List<BNPLInstallmentResponseDTO> getAllInstallmentsByTransactionId(Long transactionId);
 }

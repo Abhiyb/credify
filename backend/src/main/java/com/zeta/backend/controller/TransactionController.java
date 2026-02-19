@@ -4,129 +4,170 @@ import com.zeta.backend.dto.TransactionCreateDTO;
 import com.zeta.backend.dto.TransactionResponseDTO;
 import com.zeta.backend.dto.TransactionUpdateDTO;
 import com.zeta.backend.enums.InstallmentPlan;
-import com.zeta.backend.exception.BadRequestException;
+import com.zeta.backend.security.JwtUtil;
 import com.zeta.backend.service.ITransactionService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * REST controller for managing transaction-related API endpoints.
- * Handles regular and BNPL transaction creation, retrieval, updates, and deletion.
- * Uses DTOs for secure data transfer and logging for monitoring.
- */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000")
 public class TransactionController {
 
     private final ITransactionService transactionService;
+    private final JwtUtil jwtUtil;
 
     /**
-     * Creates a regular (non-BNPL) transaction.
-     * @param transaction dto containing transaction details.
-     * @return ResponseEntity with TransactionResponseDTO.
-     * @throws BadRequestException if dto validation fails.
+     * NEW: Validate card details before proceeding (called by frontend checkEligibility)
+     */
+    @PostMapping("/validate-card")
+    public ResponseEntity<Map<String, Object>> validateCard(
+            @RequestHeader("Authorization") String token,
+            @Valid @RequestBody TransactionCreateDTO dto) {
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Validating card ending in ****{} for user {}",
+                dto.getCardNumber().substring(dto.getCardNumber().length() - 4), userEmail);
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            boolean isValid = transactionService.validateCardDetails(dto, userEmail);
+
+            response.put("eligible", isValid);
+            response.put("message", isValid ? "Card validated successfully" : "Invalid card details or not found");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Card validation error", e);
+            response.put("eligible", false);
+            response.put("message", e.getMessage() != null ? e.getMessage() : "Card validation failed");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Create a regular (non-BNPL) transaction
      */
     @PostMapping
     public ResponseEntity<TransactionResponseDTO> createRegularTransaction(
-            @Valid @RequestBody TransactionCreateDTO transaction) {
-        log.info("Received request to create regular transaction for card ID: {}", transaction.getCardId());
-        TransactionResponseDTO response = transactionService.simulateRegularTransaction(transaction);
-        log.info("Created regular transaction with ID: {}", response.getId());
+            @RequestHeader("Authorization") String token,
+            @Valid @RequestBody TransactionCreateDTO dto) {
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Creating regular transaction for card ending in ****{} by user {}",
+                dto.getCardNumber().substring(dto.getCardNumber().length() - 4), userEmail);
+
+        TransactionResponseDTO response = transactionService.simulateRegularTransaction(dto, userEmail);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Creates a BNPL transaction with the specified installment plan.
-     * @param transaction dto containing transaction details.
-     * @param plan Installment plan (THREE, SIX, or NINE months).
-     * @return ResponseEntity with TransactionResponseDTO.
-     * @throws BadRequestException if dto validation fails or plan is invalid.
+     * Create a BNPL transaction
      */
     @PostMapping("/bnpl")
     public ResponseEntity<TransactionResponseDTO> createBNPLTransaction(
-            @Valid @RequestBody TransactionCreateDTO transaction,
+            @RequestHeader("Authorization") String token,
+            @Valid @RequestBody TransactionCreateDTO dto,
             @RequestParam InstallmentPlan plan) {
-        log.info("Received request to create BNPL transaction for card ID: {} with plan: {}",
-                transaction.getCardId(), plan);
-        TransactionResponseDTO response = transactionService.simulateBNPLTransaction(transaction, plan);
-        log.info("Created BNPL transaction with ID: {}", response.getId());
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Creating BNPL transaction for card ending in ****{} by user {} with plan: {}",
+                dto.getCardNumber().substring(dto.getCardNumber().length() - 4), userEmail, plan);
+
+        TransactionResponseDTO response = transactionService.simulateBNPLTransaction(dto, plan, userEmail);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Retrieves transaction history for a specific card.
-     * @param cardId ID of the card to fetch transactions for.
-     * @return ResponseEntity with List of TransactionResponseDTOs.
+     * Get transaction history by card
      */
     @GetMapping("/card/{cardId}")
     public ResponseEntity<List<TransactionResponseDTO>> getTransactionHistory(
+            @RequestHeader("Authorization") String token,
             @PathVariable Long cardId) {
-        log.info("Received request to fetch transaction history for card ID: {}", cardId);
-        List<TransactionResponseDTO> transactions = transactionService.getTransactionHistoryByCardId(cardId);
-        log.debug("Returning {} transactions for card ID: {}", transactions.size(), cardId);
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Fetching transaction history for card ID: {} by user {}", cardId, userEmail);
+
+        List<TransactionResponseDTO> transactions = transactionService.getTransactionHistoryByCardId(cardId, userEmail);
         return ResponseEntity.ok(transactions);
     }
 
     /**
-     * Retrieves all transactions in the system.
-     * @return ResponseEntity with List of TransactionResponseDTOs.
+     * Get all transactions (admin or general view)
      */
     @GetMapping
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions() {
-        log.info("Received request to fetch all transactions");
+        log.info("Fetching all transactions");
         List<TransactionResponseDTO> transactions = transactionService.getAllTransactions();
-        log.debug("Returning {} transactions", transactions.size());
         return ResponseEntity.ok(transactions);
     }
 
     /**
-     * Retrieves a transaction by its ID.
-     * @param id ID of the transaction to fetch.
-     * @return ResponseEntity with TransactionResponseDTO.
+     * Get transaction by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable Long id) {
-        log.info("Received request to fetch transaction with ID: {}", id);
-        TransactionResponseDTO transaction = transactionService.getTransactionById(id);
-        log.debug("Returning transaction with ID: {}", id);
+    public ResponseEntity<TransactionResponseDTO> getTransactionById(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id) {
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Fetching transaction ID: {} by user {}", id, userEmail);
+
+        TransactionResponseDTO transaction = transactionService.getTransactionById(id, userEmail);
         return ResponseEntity.ok(transaction);
     }
 
     /**
-     * Updates an existing transaction.
-     * @param id ID of the transaction to update.
-     * @param transaction dto containing updated transaction details.
-     * @return ResponseEntity with TransactionResponseDTO.
-     * @throws BadRequestException if dto validation fails.
+     * Update transaction
      */
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponseDTO> updateTransaction(
+            @RequestHeader("Authorization") String token,
             @PathVariable Long id,
             @Valid @RequestBody TransactionUpdateDTO transaction) {
-        log.info("Received request to update transaction with ID: {}", id);
-        TransactionResponseDTO response = transactionService.updateTransaction(id, transaction);
-        log.info("Updated transaction with ID: {}", id);
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Updating transaction ID: {} by user {}", id, userEmail);
+
+        TransactionResponseDTO response = transactionService.updateTransaction(id, transaction, userEmail);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Deletes a transaction by its ID.
-     * @param id ID of the transaction to delete.
-     * @return ResponseEntity with no content.
+     * Delete transaction
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        log.info("Received request to delete transaction with ID: {}", id);
-        transactionService.deleteTransaction(id);
-        log.info("Deleted transaction with ID: {}", id);
+    public ResponseEntity<Void> deleteTransaction(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id) {
+
+        String userEmail = jwtUtil.extractEmail(extractToken(token));
+        log.info("Deleting transaction ID: {} by user {}", id, userEmail);
+
+        transactionService.deleteTransaction(id, userEmail);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Extracts JWT token from Authorization header
+     */
+    private String extractToken(String authHeader) {
+        if (authHeader == null || authHeader.isEmpty()) {
+            throw new IllegalArgumentException("Authorization header missing");
+        }
+        if (authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return authHeader;
     }
 }

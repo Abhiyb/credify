@@ -1,11 +1,12 @@
-# Ignore node_modules and build for frontend
+# Backend
+backend/target/
+backend/.mvn/
+backend/*.log
+
+# Frontend
 frontend/node_modules/
 frontend/dist/
 
-# Ignore system files everywhere
+# OS
 .DS_Store
-
-# Ignore backend target and IDE files (optional if already in backend/.gitignore)
-backend/target/
-.idea/
-.vscode/
+Thumbs.db

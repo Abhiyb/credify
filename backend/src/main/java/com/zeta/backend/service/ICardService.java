@@ -8,4 +8,5 @@ public interface ICardService {
     List<CardDTO> getCardDetailsByUserId(Long userId);
     CardDTO putCardByUserId(Long cardId, String status);
     CardDTO updateCardLimit(Long cardId, Double newLimit);
+    void validateCardOwnership(Long cardId, String userEmail);
 }

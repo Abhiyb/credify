@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,13 +38,15 @@ public class BNPLPaymentController {
 
     @PostMapping("/{id}/pay")
     public ResponseEntity<BNPLInstallmentResponseDTO> payInstallment(
+            Authentication authentication,
             @PathVariable Long id,
             @RequestParam Double amount) {
-        log.info("Received request to pay installment ID: {} with amount: {}", id, amount);
-        BNPLInstallmentResponseDTO response = bnplPaymentService.payInstallment(id, amount);
-        log.info("Processed payment for installment ID: {}", id);
+
+        String email = authentication.getName();
+        BNPLInstallmentResponseDTO response = bnplPaymentService.payInstallment(id, amount, email);
         return ResponseEntity.ok(response);
     }
+
 
     /**
      * Retrieves pending (unpaid) installments for a transaction.
@@ -52,12 +55,13 @@ public class BNPLPaymentController {
      */
     @GetMapping("/transaction/{transactionId}/pending")
     public ResponseEntity<List<BNPLInstallmentResponseDTO>> getPendingInstallments(
+            Authentication authentication,
             @PathVariable Long transactionId) {
-        log.info("Received request to fetch pending installments for transaction ID: {}", transactionId);
-        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getPendingInstallmentsByTransactionId(transactionId);
-        log.debug("Returning {} pending installments for transaction ID: {}", installments.size(), transactionId);
+        String email = authentication.getName(); // get logged-in user
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getPendingInstallmentsByTransactionId(transactionId, email);
         return ResponseEntity.ok(installments);
     }
+
 
     /**
      * Retrieves overdue installments for a card.
@@ -66,12 +70,13 @@ public class BNPLPaymentController {
      */
     @GetMapping("/card/{cardId}/overdue")
     public ResponseEntity<List<BNPLInstallmentResponseDTO>> getOverdueInstallments(
+            Authentication authentication,
             @PathVariable Long cardId) {
-        log.info("Received request to fetch overdue installments for card ID: {}", cardId);
-        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getOverdueInstallmentsByCardId(cardId);
-        log.debug("Returning {} overdue installments for card ID: {}", installments.size(), cardId);
+        String email = authentication.getName(); // get logged-in user
+        List<BNPLInstallmentResponseDTO> installments = bnplPaymentService.getOverdueInstallmentsByCardId(cardId, email);
         return ResponseEntity.ok(installments);
     }
+
 
     /**
      * Retrieves all installments in the system.
