@@ -11,20 +11,11 @@ Empowers users to manage credit cards, apply for new cards, simulate real-world 
   <img src="https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker" alt="Docker" />
 </p>
 
-<p align="center">
-  <a href="#demo">📹 Live Demo Video</a> •
-  <a href="#features">✨ Features</a> •
-  <a href="#technologies">🛠️ Tech Stack</a> •
-  <a href="#installation">🚀 Quick Start</a> •
-  <a href="#api">📡 API Endpoints</a>
-</p>
+
 
 ## 📹 Demo Video
 
-Watch the full application in action:  
-[![Demo Video](https://img.shields.io/badge/Watch%20Demo%20Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/YOUR_VIDEO_ID_HERE)
 
-> Replace the link above with your actual demo video URL (YouTube, Loom, etc.) after uploading.
 
 ## ✨ Key Features
 
@@ -61,3 +52,64 @@ Watch the full application in action:
 ```bash
 git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
 cd credit-card-management-portal
+
+
+
+
+## 📥 Installation
+
+### Prerequisites
+- **Java JDK 17** or later
+- **Node.js v18.x** or later
+- **npm** (Node Package Manager)
+- **MySQL 8.x**
+- **Docker** and **Docker Compose**
+- **Git**
+
+### Backend Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
+   ```
+2. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+3. Install dependencies:
+   ```bash
+   mvn install
+   ```
+4. Configure MySQL connection in `src/main/resources/application.yml`:
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:mysql://localhost:3306/credit_card_portal
+       username: user
+       password: password
+     jpa:
+       hibernate:
+         ddl-auto: update
+   ```
+5. Run the application:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file and set the backend API URL:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8080
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
