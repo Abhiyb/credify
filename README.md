@@ -3,6 +3,7 @@
 A full-stack fintech web application that enables users to securely manage credit cards, apply for new cards, simulate regular and BNPL transactions, track installments, manage credit limits, and handle profile information — all with JWT-based authentication.
 
 ## Demo
+<img src="./resolution2.gif" width="800">
 
 ## 🚀 Project Overview
 
