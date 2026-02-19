@@ -200,4 +200,26 @@ This project demonstrates:
 ---
 
 # 📁 Project Structure
+backend/
+├── controller/
+├── service/
+├── repository/
+├── entity/
+├── config/
 
+frontend/
+├── components/
+├── views/
+├── services/
+
+📊 ER Diagram
+(Add ER diagram image here)
+
+🚀 Future Improvements
+
+Role-based access control
+API rate limiting
+CI/CD pipeline integration
+Cloud deployment
+Caching layer (Redis)
+Microservices-based scaling
