@@ -1,34 +1,41 @@
-# Credit Card Management Portal
+# 💳 Credit Card Management Portal
 
-A full-stack fintech web application that enables users to manage credit cards, simulate transactions (regular & BNPL), track installments, and securely manage profile information.  
-Designed using clean architecture principles and built to simulate real-world banking workflows with scalability, modularity, and security in mind.
+A full-stack fintech web application that enables users to securely manage credit cards, apply for new cards, simulate regular and BNPL transactions, track installments, manage credit limits, and handle profile information — all with JWT-based authentication.
 
-## Project Overview
+Built as part of the **Zeta Software Development Foundation Program** to simulate real-world banking workflows with clean architecture, scalability, and security.
 
-The Credit Card Management Portal provides end-to-end credit card lifecycle management including:
-- User registration and authentication
-- Credit card application and approval tracking
-- Credit limit management
-- Regular and BNPL transaction simulation
-- Installment generation and payment tracking
+<p align="center">
+  <img src="https://img.shields.io/badge/Java_17-✓-007396?style=for-the-badge&logo=java&logoColor=white" alt="Java 17" />
+  <img src="https://img.shields.io/badge/Spring_Boot_3-✓-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 3" />
+  <img src="https://img.shields.io/badge/Vue_3-✓-41B883?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-✓-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/MySQL_8-✓-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8" />
+  <img src="https://img.shields.io/badge/Docker-✓-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+</p>
+
+## 🚀 Project Overview
+
+The Credit Card Management Portal provides end-to-end credit card lifecycle management with the following core capabilities:
+
+- Secure user registration, login, and profile management
+- Credit card application submission and status tracking
+- Credit card activation, blocking, and limit adjustment
+- Simulation of regular and BNPL (Buy Now Pay Later) transactions
+- Automatic installment generation for BNPL (3, 6, 9 months plans)
+- Installment payment tracking with overdue detection
 - Automated late fee calculation
-- Profile management
+- Transaction history with filtering options
 
-This project demonstrates:
-- RESTful API development
-- Layered backend architecture (Controller → Service → Repository)
-- Relational database modeling
-- Transactional data consistency
-- Docker-based containerized deployment
-- Full-stack integration
+This project demonstrates modern full-stack development practices, clean architecture, RESTful design, JWT security, and containerized deployment.
 
-## Architecture
+## 🏗 System Architecture
 
-- **Frontend**: Vue.js 3 (Composition API) + Tailwind CSS + Vite  
-- **Backend**: Spring Boot (Java 17) + Spring Security + JWT  
-- **Database**: MySQL 8.x (relational, ACID-compliant)  
-- **Authentication**: JWT (stateless)  
-- **Containerization**: Docker + Docker Compose  
+- **Frontend**: Vue 3 (Composition API) + Tailwind CSS + Vite
+- **Backend**: Spring Boot 3 (Java 17) + Spring Security + JWT
+- **Database**: MySQL 8.x (relational, ACID-compliant)
+- **Authentication**: Stateless JWT tokens (no session)
+- **Containerization**: Docker + Docker Compose
+- **Communication**: REST APIs over HTTP
 
 High-level flow:
 1. User registers → logs in → receives JWT token  
@@ -37,192 +44,155 @@ High-level flow:
 4. BNPL → installments generated automatically  
 5. User pays installments → late fees calculated if overdue  
 
-## Tech Stack
+## 🛠 Tech Stack
 
-| Layer            | Technology                          | Purpose                              |
-|------------------|-------------------------------------|--------------------------------------|
-| Backend          | Spring Boot 3, Java 17              | REST APIs, Business Logic            |
-| Security         | Spring Security + JWT               | Authentication & Authorization       |
-| ORM              | Spring Data JPA / Hibernate         | Database access                      |
-| Build Tool       | Maven                               | Dependency management                |
-| Frontend         | Vue.js 3 (Composition API)          | Reactive UI                          |
-| Build Tool       | Vite                                | Fast frontend development            |
-| Styling          | Tailwind CSS                        | Responsive design                    |
-| HTTP Client      | Axios                               | API calls from frontend              |
-| Database         | MySQL 8.x                           | Persistent storage                   |
-| Containerization | Docker, Docker Compose              | Easy deployment                      |
-| Testing          | JUnit + Mockito, Vitest, Cypress    | Unit, integration, E2E testing       |
+| Layer              | Technology                        | Purpose                                   |
+|--------------------|-----------------------------------|-------------------------------------------|
+| Backend            | Spring Boot 3, Java 17            | REST APIs, Business Logic                 |
+| Security           | Spring Security + JWT             | Authentication & Authorization            |
+| ORM                | Spring Data JPA / Hibernate       | Database access                           |
+| Build Tool         | Maven                             | Dependency & build management             |
+| Frontend           | Vue.js 3 (Composition API)        | Reactive single-page application          |
+| Build Tool         | Vite                              | Fast frontend development & bundling      |
+| Styling            | Tailwind CSS                      | Responsive & utility-first design         |
+| HTTP Client        | Axios                             | API communication from frontend           |
+| Database           | MySQL 8.x                         | Persistent relational storage             |
+| Containerization   | Docker, Docker Compose            | Containerized local & production setup    |
+| Testing            | JUnit + Mockito, Vitest, Cypress  | Unit, integration, E2E testing            |
 
-## Features
+## ✨ Key Features
 
-### Authentication & Profile
-- User registration
-- Secure login with JWT
-- Profile update
-- Financial detail management
+- **Authentication & Profile**  
+  - Secure registration & login (JWT)  
+  - Profile update (name, phone, address, income)  
+  - BNPL eligibility check  
 
-### Card Management
-- Apply for credit cards (VISA, MASTER, RUPAY, AMEX)
-- Activate or block cards
-- View masked card details
-- Track available credit
+- **Card Management**  
+  - Apply for VISA, Mastercard, RuPay, Amex  
+  - View masked card details  
+  - Activate / block cards  
+  - Track available credit  
 
-### Credit Limit Management
-- Update card credit limit
-- Automatic recalculation of available balance
+- **Credit Limit Management**  
+  - Update credit limit  
+  - Automatic available balance recalculation  
 
-### Transaction Management
-- Create regular transactions
-- Create BNPL transactions (THREE, SIX, NINE month plans)
-- View transaction history
-- Update or delete transactions
+- **Transaction Management**  
+  - Simulate regular transactions  
+  - Simulate BNPL transactions (3/6/9 months)  
+  - View transaction history  
+  - Update or delete transactions  
 
-### BNPL Installments
-- Automatic installment creation
-- Installment payment
-- Track pending installments
-- Identify overdue installments
-- Automated late fee calculation
+- **BNPL Installments**  
+  - Automatic installment creation  
+  - Pay installments  
+  - View pending / paid / overdue  
+  - Automated late fee calculation  
 
-## Database Design
+## 🗄 Database Design
 
-Database: MySQL 8.x
+**Database**: MySQL 8.x (chosen for ACID compliance and relational integrity required for financial data)
 
-### Entities
+### Main Entities & Relationships
 
-1. **user_profiles**
-   - id (PK)
-   - full_name
-   - email (unique)
-   - phone
-   - address
-   - annual_income
-   - is_eligible_for_bnpl
-   - password (hashed)
+1. **user_profiles**  
+   - id (PK)  
+   - full_name  
+   - email (unique)  
+   - phone  
+   - address  
+   - annual_income  
+   - is_eligible_for_bnpl  
+   - password (BCrypt hashed)
 
-2. **cards**
-   - id (PK)
-   - card_number (unique)
-   - card_type
-   - status
-   - credit_limit
-   - available_limit
-   - expiry_date
+2. **cards**  
+   - id (PK)  
+   - card_number (unique, masked)  
+   - card_type  
+   - status (ACTIVE / BLOCKED)  
+   - credit_limit  
+   - available_limit  
+   - expiry_date  
    - user_id (FK → user_profiles)
 
-3. **card_applications**
-   - id (PK)
-   - user_id (FK)
-   - card_type
-   - requested_limit
-   - application_date
-   - status
-   - reviewed_by
+3. **card_applications**  
+   - id (PK)  
+   - user_id (FK)  
+   - card_type  
+   - requested_limit  
+   - application_date  
+   - status  
+   - reviewed_by  
    - review_date
 
-4. **transactions**
-   - id (PK)
-   - card_id (FK → cards)
-   - merchant_name
-   - amount
-   - transaction_date
-   - category
+4. **transactions**  
+   - id (PK)  
+   - card_id (FK → cards)  
+   - merchant_name  
+   - amount  
+   - transaction_date  
+   - category  
    - is_bnpl
 
-5. **bnpl_installments**
-   - id (PK)
-   - transaction_id (FK → transactions)
-   - installment_number
-   - amount
-   - due_date
-   - is_paid
+5. **bnpl_installments**  
+   - id (PK)  
+   - transaction_id (FK → transactions)  
+   - installment_number  
+   - amount  
+   - due_date  
+   - is_paid  
    - late_fee
 
-### Relationships
+**Relationships**:
 - One User → Many Cards
 - One User → Many Card Applications
 - One Card → Many Transactions
 - One Transaction → Many BNPL Installments
 
 ## ER Diagram
-(Add ER diagram image here)  
+
 <img width="851" alt="ER Diagram" src="https://github.com/user-attachments/assets/b66e322c-3461-4a7d-b41e-646792f6c1e0" />
 
-## API Endpoints
+(Replace with your actual high-quality image path if needed)
 
-All endpoints are under `http://localhost:8080`.  
+## 📡 API Endpoints
+
+All endpoints are available at `http://localhost:8080`.  
 Protected endpoints require `Authorization: Bearer <token>` header.
 
-### Authentication & Profile
-- `POST /api/profile` — Register user
-- `POST /api/profile/login` — Login & get JWT
-- `GET /api/profile/{userId}` — Get profile
-- `PUT /api/profile/{userId}` — Update profile
-- `PUT /api/profile/{userId}/password` — Change password
+| Category               | Method | Endpoint                                          | Description                                 | Auth Required |
+|-----------------------|--------|---------------------------------------------------|---------------------------------------------|---------------|
+| Authentication         | POST   | `/api/profile`                                    | Register new user                           | No            |
+| Authentication         | POST   | `/api/profile/login`                              | Login & receive JWT                         | No            |
+| Profile                | GET    | `/api/profile/{userId}`                           | Get user profile                            | Yes           |
+| Profile                | PUT    | `/api/profile/{userId}`                           | Update profile                              | Yes           |
+| Profile                | PUT    | `/api/profile/{userId}/password`                  | Change password                             | Yes           |
+| Card Application       | POST   | `/api/cards/apply`                                | Apply for a credit card                     | Yes           |
+| Card Application       | GET    | `/api/cards/applications/{userId}`                | Get all applications for user               | Yes           |
+| Cards                  | GET    | `/api/cards/{userId}`                             | Get user's credit cards                     | Yes           |
+| Cards                  | PUT    | `/api/cards/{cardId}/status`                      | Update card status (ACTIVE/BLOCKED)         | Yes           |
+| Cards                  | PUT    | `/api/cards/{cardId}/limit`                       | Update credit limit                         | Yes           |
+| Transactions           | POST   | `/api/transactions`                               | Create regular transaction                  | Yes           |
+| Transactions           | POST   | `/api/transactions/bnpl?plan=THREE`               | Create BNPL transaction                     | Yes           |
+| Transactions           | GET    | `/api/transactions/card/{cardId}`                 | Get transaction history for card            | Yes           |
+| Transactions           | GET    | `/api/transactions`                               | Get all transactions                        | Yes           |
+| Transactions           | GET    | `/api/transactions/{id}`                          | Get single transaction                      | Yes           |
+| Transactions           | PUT    | `/api/transactions/{id}`                          | Update transaction                          | Yes           |
+| Transactions           | DELETE | `/api/transactions/{id}`                          | Delete transaction                          | Yes           |
+| BNPL Installments      | POST   | `/api/bnpl/installments`                          | Create BNPL installment (manual)            | Yes           |
+| BNPL Installments      | POST   | `/api/bnpl/installments/{id}/pay`                 | Pay installment                             | Yes           |
+| BNPL Installments      | GET    | `/api/bnpl/installments`                          | Get all installments                        | Yes           |
+| BNPL Installments      | GET    | `/api/bnpl/installments/{id}`                     | Get single installment                      | Yes           |
+| BNPL Installments      | GET    | `/api/bnpl/installments/transaction/{id}`         | Get installments by transaction             | Yes           |
+| BNPL Installments      | GET    | `/api/bnpl/installments/transaction/{id}/pending` | Get pending installments                    | Yes           |
+| BNPL Installments      | GET    | `/api/bnpl/installments/card/{cardId}/overdue`    | Get overdue installments                    | Yes           |
+| BNPL Installments      | PUT    | `/api/bnpl/installments/{id}`                     | Update installment                          | Yes           |
+| BNPL Installments      | DELETE | `/api/bnpl/installments/{id}`                     | Delete installment                          | Yes           |
+| Late Fees              | GET    | `/api/latefees/{cardId}`                          | Get total late fee for card                 | Yes           |
+| Late Fees              | GET    | `/api/latefees/installment/{installmentId}`       | Get late fee for single installment         | Yes           |
 
-### Card Operations
-- `POST /api/cards/apply` — Apply for card
-- `GET /api/cards/applications/{userId}` — List applications
-- `GET /api/cards/{userId}` — List cards
-- `PUT /api/cards/{cardId}/status` — Update card status
-- `PUT /api/cards/{cardId}/limit` — Update credit limit
+## Setup Instructions
 
-### Transactions
-- `POST /api/transactions` — Create regular transaction
-- `POST /api/transactions/bnpl?plan=THREE` — Create BNPL transaction
-- `GET /api/transactions/card/{cardId}` — Transaction history
-- `GET /api/transactions` — All transactions
-- `GET /api/transactions/{id}` — Single transaction
-- `PUT /api/transactions/{id}` — Update transaction
-- `DELETE /api/transactions/{id}` — Delete transaction
-
-### BNPL Installments
-- `POST /api/bnpl/installments` — Create installment (manual)
-- `POST /api/bnpl/installments/{id}/pay` — Pay installment
-- `GET /api/bnpl/installments` — All installments
-- `GET /api/bnpl/installments/{id}` — Single installment
-- `GET /api/bnpl/installments/transaction/{transactionId}` — By transaction
-- `GET /api/bnpl/installments/transaction/{transactionId}/pending` — Pending
-- `GET /api/bnpl/installments/card/{cardId}/overdue` — Overdue
-- `PUT /api/bnpl/installments/{id}` — Update installment
-- `DELETE /api/bnpl/installments/{id}` — Delete installment
-
-### Late Fees
-- `GET /api/latefees/{cardId}` — Total late fee for card
-- `GET /api/latefees/installment/{installmentId}` — Late fee for one installment
-
-## Project Structure
-
-## Future Improvements
-- Role-based access control (Admin/User)
-- API rate limiting & throttling
-- Refresh token implementation
-- Email/SMS notifications for due payments
-- CI/CD pipeline (GitHub Actions)
-- Cloud deployment (AWS / Azure)
-- Redis caching for frequent queries
-- Microservices migration for high scalability
-
-## Demo Video
-
-[Watch Full Application Demo](https://youtu.be/YOUR_VIDEO_LINK_HERE)  
-(Upload your screen recording and replace this link)
-
-## Team
-- Abhishekh (Team Lead): Core Backend, BNPL, Security
-- Akuthota Sravani: Card Application Module
-- Aravind P: Credit Limit & Transaction Logic
-- Pothuri Tejaswi: Profile & User Management
-- Ashritha Sadu: Frontend UI/UX & Integration
-
-## License
-MIT License — see the LICENSE file for details.
-
-## Repository
-https://github.com/Abhishekhzeta/credit-card-management-portal
-
-## Notes
-- Frontend: http://localhost:5173
-- Backend APIs: http://localhost:8080
-- Use Postman collections (in repo) for API testing
-- Default testing: Register a user → Login → Apply card → Simulate BNPL transaction
+1. Clone the repository
+   ```bash
+   git clone https://github.com/Abhishekhzeta/credit-card-management-portal.git
