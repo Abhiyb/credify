@@ -200,11 +200,14 @@ npm run dev
 Access: http://localhost:5173
 
 ## Future Improvements
-Role-based access control (Admin / User)
 API rate limiting & throttling
+
 Refresh token implementation
-Email / SMS notifications for due payments
+
 CI/CD pipeline (GitHub Actions)
+
 Cloud deployment (AWS / Azure)
+
 Redis caching for frequent queries
+
 Microservices migration for high scalability
